@@ -6,6 +6,8 @@ tagline: "Alias: Dizmana"
 description: "Cybersecurity"
 url: "https://ErenCanOzmn.github.io"
 baseurl: ""
+paginate: 10
+paginate_path: "/page/:num/"
 avatar: "https://avatars.githubusercontent.com/u/123707804?v=4"
 github:
   username: ErenCanOzmn
