@@ -2,8 +2,8 @@ theme: jekyll-theme-chirpy
 lang: en
 timezone: Europe/Istanbul
 title: Dizmana
-tagline: Alias: Dizmana
-description: 
+tagline: "Alias: Dizmana"
+description: "Cybersecurity"
 url: "https://ErenCanOzmn.github.io"
 baseurl: ""
 github:
