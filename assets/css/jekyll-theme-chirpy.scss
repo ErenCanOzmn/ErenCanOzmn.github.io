@@ -1,0 +1,48 @@
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+
+/* ===========================================================
+   Calico cat — sits in the bottom-right corner and follows
+   the mouse cursor with its eyes. Markup lives in the footer
+   include; the eye movement is driven by /assets/js/cat.js.
+   Loaded site-wide without touching the theme's core files.
+   =========================================================== */
+
+#calico-cat {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  width: 120px;
+  height: auto;
+  z-index: 9000;
+  pointer-events: none; /* never blocks clicks */
+  user-select: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  opacity: 0.95;
+}
+
+#calico-cat .cat-pupil {
+  transition: transform 0.08s ease-out;
+}
+
+/* Keep it out of the way on small screens. */
+@media (max-width: 768px) {
+  #calico-cat {
+    width: 84px;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 480px) {
+  #calico-cat {
+    display: none;
+  }
+}

@@ -1,0 +1,109 @@
+<!-- The Footer -->
+
+<footer
+  aria-label="Site Info"
+  class="
+    d-flex flex-column justify-content-center text-muted
+    flex-lg-row justify-content-lg-between align-items-lg-center pb-lg-3
+  "
+>
+  <p>
+    {{- '©' }}
+    <time>{{ 'now' | date: '%Y' }}</time>
+
+    {% if site.social.links %}
+      <a href="{{ site.social.links[0] }}">{{ site.social.name }}</a>.
+    {% else %}
+      <em class="fst-normal">{{ site.social.name }}</em>.
+    {% endif %}
+
+    {% if site.data.locales[include.lang].copyright.brief %}
+      <span
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="{{ site.data.locales[include.lang].copyright.verbose }}"
+      >
+        {{- site.data.locales[include.lang].copyright.brief -}}
+      </span>
+    {% endif %}
+  </p>
+
+  <p>
+    {%- capture _platform -%}
+      <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>
+    {%- endcapture -%}
+
+    {%- capture _theme -%}
+      <a
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="v{{ theme.version }}"
+        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        target="_blank"
+        rel="noopener"
+      >Chirpy</a>
+    {%- endcapture -%}
+
+    {{ site.data.locales[include.lang].meta | replace: ':PLATFORM', _platform | replace: ':THEME', _theme }}
+  </p>
+</footer>
+
+<!-- Calico cat that follows the mouse cursor with its eyes (see assets/js/cat.js) -->
+<svg id="calico-cat" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <clipPath id="cat-head-clip"><ellipse cx="100" cy="95" rx="52" ry="46" /></clipPath>
+    <clipPath id="cat-body-clip"><ellipse cx="100" cy="182" rx="56" ry="38" /></clipPath>
+  </defs>
+
+  <!-- tail -->
+  <path d="M150 182 q 46 -6 36 -60" fill="none" stroke="#e8913c" stroke-width="15" stroke-linecap="round" />
+
+  <!-- body -->
+  <ellipse cx="100" cy="182" rx="56" ry="38" fill="#f7f3ee" />
+  <g clip-path="url(#cat-body-clip)">
+    <ellipse cx="138" cy="178" rx="34" ry="34" fill="#e8913c" />
+    <ellipse cx="68" cy="190" rx="26" ry="26" fill="#3a3a3a" />
+  </g>
+
+  <!-- front paws -->
+  <ellipse cx="84" cy="208" rx="16" ry="12" fill="#f7f3ee" />
+  <ellipse cx="116" cy="208" rx="16" ry="12" fill="#f7f3ee" />
+  <path d="M84 200 v14 M78 214 h12" stroke="#d9cfc4" stroke-width="1.5" fill="none" />
+  <path d="M116 200 v14 M110 214 h12" stroke="#d9cfc4" stroke-width="1.5" fill="none" />
+
+  <!-- ears -->
+  <path d="M58 58 L46 20 L90 48 Z" fill="#e8913c" />
+  <path d="M142 58 L154 20 L110 48 Z" fill="#3a3a3a" />
+  <path d="M64 52 L57 30 L82 47 Z" fill="#e9a7b5" />
+  <path d="M136 52 L143 30 L118 47 Z" fill="#e9a7b5" />
+
+  <!-- head -->
+  <ellipse cx="100" cy="95" rx="52" ry="46" fill="#f7f3ee" />
+  <g clip-path="url(#cat-head-clip)">
+    <ellipse cx="140" cy="74" rx="42" ry="44" fill="#e8913c" />
+    <ellipse cx="60" cy="70" rx="30" ry="34" fill="#3a3a3a" />
+  </g>
+
+  <!-- eyes -->
+  <g class="cat-eye">
+    <ellipse cx="82" cy="96" rx="12" ry="14" fill="#9bbf3a" />
+    <ellipse class="cat-pupil" cx="82" cy="96" rx="5" ry="8" fill="#222222" />
+    <circle cx="78" cy="90" r="2.2" fill="#ffffff" opacity="0.9" />
+  </g>
+  <g class="cat-eye">
+    <ellipse cx="118" cy="96" rx="12" ry="14" fill="#9bbf3a" />
+    <ellipse class="cat-pupil" cx="118" cy="96" rx="5" ry="8" fill="#222222" />
+    <circle cx="114" cy="90" r="2.2" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- nose + mouth -->
+  <path d="M94 114 L106 114 L100 122 Z" fill="#e98aa0" />
+  <path d="M100 122 q -6 8 -14 6 M100 122 q 6 8 14 6" fill="none" stroke="#b9a99a" stroke-width="2" stroke-linecap="round" />
+
+  <!-- whiskers -->
+  <g stroke="#d9cfc4" stroke-width="1.6" stroke-linecap="round">
+    <path d="M70 110 L36 104 M70 116 L36 118 M70 122 L40 130" />
+    <path d="M130 110 L164 104 M130 116 L164 118 M130 122 L160 130" />
+  </g>
+</svg>
+<script src="{{ '/assets/js/cat.js' | relative_url }}" defer></script>
