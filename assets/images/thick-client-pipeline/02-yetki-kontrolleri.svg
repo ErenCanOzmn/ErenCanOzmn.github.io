@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Named Pipe Güvenlik Kararları</title>
+  <desc id="desc">Named pipe isteğinin bağlantı erişimi, doğrulanmış kimlik, işlem yetkisi ve kaynak yetkisi kontrollerinden geçişini; herhangi bir başarısızlıkta işlemin durdurulmasını gösterir.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1L11 6L1 11Z" fill="#aeb6bf"/></marker>
+    <marker id="down-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1 1L11 6L1 11Z" fill="#a58d80"/></marker>
+    <style>
+      .ui{font-family:"Segoe UI",Arial,sans-serif}.title{font-size:34px;font-weight:650;fill:#f0f1f2}.subtitle{font-size:18px;fill:#b7bdc4}.step{font-size:13px;font-weight:650;letter-spacing:.8px;fill:#aeb7c0}.box-title{font-size:21px;font-weight:650;fill:#f0f1f2}.box-copy{font-size:15px;fill:#c3c8cd}.small{font-size:14px;fill:#aeb4ba}.yes{font-size:13px;font-weight:650;fill:#aabaae}.no{font-size:13px;font-weight:650;fill:#b9a094}.panel{fill:#3a3f46;stroke:#666d75;stroke-width:2}.flow{fill:none;stroke:#aeb6bf;stroke-width:3;marker-end:url(#arrow)}.reject-flow{fill:none;stroke:#927e74;stroke-width:2;stroke-dasharray:7 7;marker-end:url(#down-arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#2f3338"/><rect x="80" y="72" width="1440" height="756" fill="#34383e" stroke="#555b62" stroke-width="2"/>
+  <text x="124" y="132" class="ui title">Named Pipe Güvenlik Kararları</text>
+  <text x="124" y="168" class="ui subtitle">Bir bağlantının kurulması, talep edilen işlemin otomatik olarak yetkili olduğu anlamına gelmez.</text>
+  <line x1="124" y1="199" x2="1476" y2="199" stroke="#565c63"/>
+
+  <rect x="120" y="346" width="164" height="150" class="panel"/><rect x="120" y="346" width="7" height="150" fill="#80909e"/>
+  <text x="148" y="383" class="ui step">BAŞLANGIÇ</text><text x="148" y="423" class="ui box-title">İstek</text>
+  <text x="148" y="456" class="ui box-copy">Pipe istemcisi</text><text x="148" y="480" class="ui box-copy">bağlanmak ister.</text>
+
+  <rect x="354" y="316" width="244" height="210" class="panel"/><rect x="354" y="316" width="244" height="7" fill="#8796a3"/>
+  <text x="380" y="359" class="ui step">KONTROL 01</text><text x="380" y="400" class="ui box-title">Bağlantı erişimi</text>
+  <line x1="380" y1="418" x2="572" y2="418" stroke="#5d646b"/><text x="380" y="454" class="ui box-copy">DACL bu kimliğin</text>
+  <text x="380" y="479" class="ui box-copy">pipe'a bağlanmasına</text><text x="380" y="504" class="ui box-copy">izin veriyor mu?</text>
+
+  <rect x="648" y="316" width="244" height="210" class="panel"/><rect x="648" y="316" width="244" height="7" fill="#829388"/>
+  <text x="674" y="359" class="ui step">KONTROL 02</text><text x="674" y="400" class="ui box-title">Kimlik doğrulama</text>
+  <line x1="674" y1="418" x2="866" y2="418" stroke="#5d646b"/><text x="674" y="454" class="ui box-copy">İstemci kimliği</text>
+  <text x="674" y="479" class="ui box-copy">bağlantı bağlamından</text><text x="674" y="504" class="ui box-copy">doğrulandı mı?</text>
+
+  <rect x="942" y="316" width="244" height="210" class="panel"/><rect x="942" y="316" width="244" height="7" fill="#8e8b9e"/>
+  <text x="968" y="359" class="ui step">KONTROL 03</text><text x="968" y="400" class="ui box-title">İşlem yetkisi</text>
+  <line x1="968" y1="418" x2="1160" y2="418" stroke="#5d646b"/><text x="968" y="454" class="ui box-copy">Bu kimlik talep</text>
+  <text x="968" y="479" class="ui box-copy">edilen işlemi</text><text x="968" y="504" class="ui box-copy">yapabilir mi?</text>
+
+  <rect x="1236" y="316" width="244" height="210" class="panel"/><rect x="1236" y="316" width="244" height="7" fill="#a38f73"/>
+  <text x="1262" y="359" class="ui step">KONTROL 04</text><text x="1262" y="400" class="ui box-title">Kaynak yetkisi</text>
+  <line x1="1262" y1="418" x2="1454" y2="418" stroke="#5d646b"/><text x="1262" y="454" class="ui box-copy">İşlem bu dosya veya</text>
+  <text x="1262" y="479" class="ui box-copy">veri kaydı üzerinde</text><text x="1262" y="504" class="ui box-copy">uygulanabilir mi?</text>
+
+  <path d="M284 421H340" class="flow"/><path d="M598 421H634" class="flow"/><path d="M892 421H928" class="flow"/><path d="M1186 421H1222" class="flow"/>
+  <text x="616" y="400" text-anchor="middle" class="ui yes">EVET</text><text x="910" y="400" text-anchor="middle" class="ui yes">EVET</text><text x="1204" y="400" text-anchor="middle" class="ui yes">EVET</text>
+
+  <path d="M476 526V613" class="reject-flow"/><path d="M770 526V613" class="reject-flow"/><path d="M1064 526V613" class="reject-flow"/><path d="M1358 526V613" class="reject-flow"/>
+  <text x="490" y="574" class="ui no">HAYIR</text><text x="784" y="574" class="ui no">HAYIR</text><text x="1078" y="574" class="ui no">HAYIR</text><text x="1372" y="574" class="ui no">HAYIR</text>
+
+  <rect x="354" y="628" width="1126" height="84" fill="#403b39" stroke="#75655e" stroke-width="2"/><rect x="354" y="628" width="8" height="84" fill="#9a8175"/>
+  <text x="389" y="665" class="ui box-title">İşlem durdurulur</text>
+  <text x="389" y="693" class="ui box-copy">İstek reddedilir ve karar, doğrulanabilen istemci kimliğiyle birlikte denetim kaydına yazılır.</text>
+
+  <text x="124" y="777" class="ui small">Her kontrol bağımsızdır; önceki adımın başarılı olması sonraki adıma izin verildiğini göstermez.</text>
+  <text x="1476" y="777" text-anchor="end" class="ui yes">Tüm kontroller geçtiğinde işlem yürütülür.</text>
+  <text x="1476" y="815" text-anchor="end" class="ui small">Şekil 2</text>
+</svg>

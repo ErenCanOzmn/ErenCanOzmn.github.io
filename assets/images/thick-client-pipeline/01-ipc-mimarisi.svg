@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Thick Client Named Pipe Mimari Akışı</title>
+  <desc id="desc">Standart kullanıcı arayüzünden named pipe üzerinden servis hesabıyla çalışan Windows servisine ve dosya ile veritabanı kaynaklarına uzanan sade mimari akış.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1L11 6L1 11Z" fill="#aeb6bf"/>
+    </marker>
+    <style>
+      .ui { font-family: "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 34px; font-weight: 650; fill: #f0f1f2; }
+      .subtitle { font-size: 18px; fill: #b7bdc4; }
+      .box-title { font-size: 23px; font-weight: 650; fill: #f0f1f2; }
+      .box-copy { font-size: 16px; fill: #c3c8cd; }
+      .account { font-size: 15px; font-weight: 600; fill: #b6c2cc; }
+      .small { font-size: 14px; fill: #aeb4ba; }
+      .boundary-label { font-size: 14px; font-weight: 650; fill: #d6c6ad; letter-spacing: .7px; }
+      .panel { fill: #3a3f46; stroke: #666d75; stroke-width: 2; }
+      .flow { fill: none; stroke: #aeb6bf; stroke-width: 3; marker-end: url(#arrow); }
+      .boundary { stroke: #ad9471; stroke-width: 2; stroke-dasharray: 8 8; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#2f3338"/>
+  <rect x="80" y="72" width="1440" height="756" fill="#34383e" stroke="#555b62" stroke-width="2"/>
+
+  <!-- Header -->
+  <text x="124" y="132" class="ui title">Thick Client Named Pipe Mimari Akışı</text>
+  <text x="124" y="168" class="ui subtitle">Kullanıcı süreci ile servis süreci arasındaki iletişim ve güven sınırı</text>
+  <line x1="124" y1="199" x2="1476" y2="199" stroke="#565c63" stroke-width="1"/>
+
+  <!-- Trust boundary -->
+  <line x1="795" y1="250" x2="795" y2="705" class="boundary"/>
+  <rect x="715" y="232" width="160" height="32" fill="#3d3933" stroke="#8f7a5e"/>
+  <text x="795" y="253" text-anchor="middle" class="ui boundary-label">GÜVEN SINIRI</text>
+
+  <!-- Desktop UI -->
+  <g>
+    <rect x="130" y="342" width="330" height="252" class="panel"/>
+    <rect x="130" y="342" width="330" height="44" fill="#59636c"/>
+    <circle cx="155" cy="364" r="5" fill="#c6cbd0"/>
+    <circle cx="174" cy="364" r="5" fill="#9da5ad"/>
+    <rect x="166" y="430" width="258" height="13" fill="#656c73"/>
+    <rect x="166" y="462" width="182" height="13" fill="#555b62"/>
+    <rect x="166" y="509" width="105" height="34" fill="#75899b"/>
+  </g>
+  <text x="295" y="638" text-anchor="middle" class="ui box-title">Masaüstü Arayüzü</text>
+  <text x="295" y="669" text-anchor="middle" class="ui account">Standart kullanıcı hesabı</text>
+
+  <!-- Named pipe -->
+  <g>
+    <rect x="535" y="398" width="250" height="138" fill="#41474e" stroke="#78818a" stroke-width="2"/>
+    <line x1="574" y1="443" x2="746" y2="443" stroke="#93a1ad" stroke-width="3"/>
+    <line x1="574" y1="476" x2="746" y2="476" stroke="#93a1ad" stroke-width="3"/>
+    <path d="M590 430L573 443L590 456M730 463L747 476L730 489" fill="none" stroke="#93a1ad" stroke-width="3"/>
+  </g>
+  <text x="660" y="579" text-anchor="middle" class="ui box-title">Named Pipe</text>
+  <text x="660" y="610" text-anchor="middle" class="ui small">DACL ve işlem yetkisi</text>
+
+  <!-- Service -->
+  <g>
+    <rect x="920" y="342" width="330" height="252" class="panel"/>
+    <rect x="920" y="342" width="8" height="252" fill="#7f9488"/>
+    <circle cx="1085" cy="432" r="42" fill="none" stroke="#829388" stroke-width="4"/>
+    <circle cx="1085" cy="432" r="13" fill="#829388"/>
+    <path d="M1085 378V399M1085 465V486M1031 432H1052M1118 432H1139M1047 394L1062 409M1108 455L1123 470M1123 394L1108 409M1062 455L1047 470" stroke="#829388" stroke-width="5"/>
+    <rect x="984" y="514" width="202" height="12" fill="#626970"/>
+    <rect x="984" y="543" width="140" height="12" fill="#565c63"/>
+  </g>
+  <text x="1085" y="638" text-anchor="middle" class="ui box-title">Windows Servisi</text>
+  <text x="1085" y="669" text-anchor="middle" class="ui account">Servis hesabı</text>
+
+  <!-- Resources -->
+  <g>
+    <rect x="1340" y="366" width="136" height="92" class="panel"/>
+    <path d="M1370 400H1393L1401 409H1448V434H1370Z" fill="none" stroke="#b49c7b" stroke-width="3"/>
+    <text x="1408" y="489" text-anchor="middle" class="ui box-copy">Dosyalar</text>
+
+    <rect x="1340" y="514" width="136" height="92" class="panel"/>
+    <ellipse cx="1408" cy="548" rx="37" ry="12" fill="none" stroke="#8f8ba3" stroke-width="3"/>
+    <path d="M1371 548V575C1371 582 1388 587 1408 587S1445 582 1445 575V548" fill="none" stroke="#8f8ba3" stroke-width="3"/>
+    <text x="1408" y="637" text-anchor="middle" class="ui box-copy">Veritabanı</text>
+  </g>
+
+  <!-- Flow -->
+  <path d="M460 467H521" class="flow"/>
+  <path d="M785 467H906" class="flow"/>
+  <path d="M1250 412H1326" class="flow"/>
+  <path d="M1250 560H1326" class="flow"/>
+
+  <!-- Minimal labels -->
+  <text x="490" y="449" text-anchor="middle" class="ui small">İstek</text>
+  <text x="846" y="449" text-anchor="middle" class="ui small">Doğrulama</text>
+
+  <!-- Footer -->
+  <line x1="124" y1="735" x2="1476" y2="735" stroke="#565c63" stroke-width="1"/>
+  <text x="124" y="777" class="ui small">DACL kanala erişimi sınırlar; işlem yetkisi servis tarafında uygulanır.</text>
+  <text x="1476" y="777" text-anchor="end" class="ui small">Şekil 1</text>
+</svg>
