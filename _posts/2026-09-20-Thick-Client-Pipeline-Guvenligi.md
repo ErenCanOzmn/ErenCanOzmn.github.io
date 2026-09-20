@@ -1,6 +1,6 @@
 ---
 title: "Thick Client Pipeline Güvenliği"
-date: 2026-09-20 17:00:00 +0300
+date: 2026-09-20 15:00:00 +0300
 categories: [Thick Client Security]
 tags: [windows, named-pipes, ipc, dotnet, pentest, hardening]
 lang: tr
