@@ -1,5 +1,5 @@
 ---
-title: "Thick Client Güvenliği: Diskte Şifreli, Bellekte Açık"
+title: "Thick Client Güvenliği: Uygulama Sırları ve Hassas Veriler"
 date: 2026-09-27 17:00:00 +0300
 categories: [Thick Client Security]
 tags: [windows, thick-client, memory, dpapi, dotnet, pentest, hardening]
