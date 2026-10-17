@@ -1,0 +1,6 @@
+---
+layout: lab-base
+---
+<header class="page-heading"><h1>Yazılar</h1><p>Yazıları çalışma alanlarına göre inceleyebilirsin.</p></header>
+<div class="index-toolbar"><span>{{ site.categories.size }} KONU / {{ site.posts.size }} YAZI</span><a href="{{ '/tags/' | relative_url }}">Tüm etiketler ↗</a></div>
+<div class="category-grid">{% assign categories = site.categories | sort %}{% for category in categories %}{% assign slug = category[0] | slugify %}<section class="category-panel"><div class="category-number"><span>{{ category[1].size }} YAZI</span></div><h2><a href="{{ '/categories/' | append: slug | append: '/' | relative_url }}">{{ category[0] | escape }} <span aria-hidden="true">↗</span></a></h2><ul>{% for post in category[1] limit:3 %}<li><a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a><time>{{ post.date | date: '%d.%m.%Y' }}</time></li>{% endfor %}</ul></section>{% endfor %}</div>

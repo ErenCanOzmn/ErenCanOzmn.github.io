@@ -141,6 +141,12 @@
     measure();
     if (lastPointer) aim(lastPointer.x, lastPointer.y);
   }, { passive: true });
+
+  // The homepage companion sits in the profile section rather than the viewport.
+  window.addEventListener('scroll', function () {
+    measure();
+    if (lastPointer) aim(lastPointer.x, lastPointer.y);
+  }, { passive: true });
   document.addEventListener('visibilitychange', refreshMotion);
   reducedMotion.addEventListener('change', refreshMotion);
 

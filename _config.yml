@@ -4,8 +4,12 @@ timezone: Europe/Istanbul
 title: Dizmana
 tagline: "Alias: Dizmana"
 description: "Cybersecurity"
-url: "https://ErenCanOzmn.github.io"
+url: "https://erencanozmen.com"
 baseurl: ""
+plugins:
+  - jekyll-archives
+  - jekyll-seo-tag
+  - jekyll-sitemap
 paginate: 10
 paginate_path: "/page/:num/"
 avatar: "https://avatars.githubusercontent.com/u/123707804?v=4"

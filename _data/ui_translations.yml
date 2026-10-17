@@ -1,0 +1,126 @@
+Arşiv: Archive
+Yazılar: Articles
+Hakkımda: About
+Ara: Search
+Arama: Search
+Site dili: Site language
+"Yazı dilleri: Türkçe ve İngilizce": "Article languages: Turkish and English"
+Ana menü: Main navigation
+DIZMANA ana sayfa: DIZMANA home
+İçeriğe geç: Skip to content
+Etiketler: Tags
+Başa dön ↑: Back to top ↑
+GÜVENLİK ARAŞTIRMALARI & KİŞİSEL NOTLAR: SECURITY RESEARCH & PERSONAL NOTES
+Merhaba, ben: Hi, I'm
+Uygulama güvenliği ve tersine mühendislik.: Application security and reverse engineering.
+Güvenlik araştırmalarımı, zararlı yazılım incelemelerimi ve teknik notlarımı bu sitede paylaşıyorum.: I share my security research, malware analyses and technical notes here.
+SON YAZI: LATEST ARTICLE
+Son yazı: Latest article
+Son yazılar: Latest articles
+Tüm arşiv: Full archive
+YAZILAR: ARTICLES
+Tümü: All
+Yazıları konuya göre filtrele: Filter articles by topic
+Eylemlerim sürecektir...: My actions will continue...
+Terminali duraklat: Pause terminal
+Terminali devam ettir: Resume terminal
+"Dizmana'nın maskotu: antrasit ceketli ve kulaklıklı, başı ve gözleri imleci takip eden üç renkli hacker kedi": "Dizmana's mascot: a calico hacker cat in a charcoal jacket and headphones whose head and eyes follow the cursor"
+← Ana sayfa: ← Home
+Ailenizin en sevdiği hacker: Your family's favorite hacker
+Dızmana enjoyer: Dızmana enjoyer
+Zalimlerin düşmanı: Enemy of oppressors
+Yazılarım: My articles
+İsim: Name
+CVE kayıtları, Hall of Fame ve sertifikalar.: CVE records, Hall of Fame entries and certifications.
+Achievements sayfası ↗: Achievements page ↗
+CVE kayıtları, Hall of Fame listeleri ve mesleki sertifikalarım.: My CVE records, Hall of Fame entries and professional certifications.
+Başarı bölümleri: Achievement sections
+BU SAYFADA: ON THIS PAGE
+Sertifika: Certification
+Sertifikalar: Certifications
+CVE (Common Vulnerabilities and Exposures), güvenlik açıklarının ortak bir kimlik numarasıyla tanımlanmasını sağlar. Aşağıda araştırmalarım kapsamında yer alan kayıtları ve yayımlanma durumlarını bulabilirsin.: CVE (Common Vulnerabilities and Exposures) gives security vulnerabilities a shared identifier. Below are the records from my research and their publication status.
+CVE hakkında ↗: About CVE ↗
+Yayımlandı: Published
+Henüz yayımlanmadı: Not yet published
+Yayımlanmamış kayıt: Unpublished record
+Ürün ve teknik ayrıntılar henüz paylaşılmadı.: Product and technical details have not been disclosed yet.
+Microsoft PowerToys’ta zayıf kimlik doğrulama nedeniyle yetkili bir saldırganın yerel ortamda yetkisiz değişiklik yapmasına olanak tanıyan açık.: Weak authentication in Microsoft PowerToys allows an authorized attacker to perform tampering locally.
+Wolvox9 ERP’nin KontrolPanel.exe bileşeninde tespit edilen dizin geçişi (Path Traversal) açığı.: A path traversal vulnerability identified in the KontrolPanel.exe component of Wolvox9 ERP.
+PassGate ürününde LDAP sorgularının işlenmesiyle ilgili LDAP Injection açığı.: An LDAP injection vulnerability in the way PassGate handles LDAP queries.
+Açık türü: Vulnerability type
+Bileşen: Component
+Yayımlanma: Published
+Kurumlar, güvenlik açığı bildirimleriyle katkıda bulunan araştırmacılara Hall of Fame sayfalarında teşekkür eder. Yer aldığım kayıt aşağıda.: Organizations recognize researchers who contribute vulnerability reports on their Hall of Fame pages. My entry is listed below.
+MSI Security Hall of Fame listesinde Haziran 2026 döneminde yer alan güvenlik araştırması katkım.: Recognition for my security research contribution in MSI's June 2026 Security Hall of Fame.
+Haziran 2026: June 2026
+Program: Program
+Listelenen isim: Listed name
+MSI Hall of Fame kaydı ↗: MSI Hall of Fame entry ↗
+Web uygulama güvenliği ve sızma testi alanlarında aldığım sertifikalar.: My certifications in web application security and penetration testing.
+Güvenlik incelemeleri ve teknik notlarım.: My security analyses and technical notes.
+Tüm yazılar ↗: All articles ↗
+Uygulama güvenliği, tersine mühendislik ve zararlı yazılım analizi üzerine teknik yazılar.: Technical articles on application security, reverse engineering and malware analysis.
+YAYIMLANMIŞ YAZI: PUBLISHED ARTICLES
+Tüm yazıların içinde ara ↗: Search all articles ↗
+Tüm yazılar: All articles
+Etiket dizini ↗: Tag index ↗
+Başlık, konu veya etikete göre süz: Filter by title, topic or tag
+Yazılarda filtrele…: Filter articles…
+Bu filtreye uyan yazı yok. Başka bir kelime dene veya “Tümü”ne geç.: No articles match this filter. Try another word or select “All”.
+Yazıları çalışma alanlarına göre inceleyebilirsin.: Browse articles by research topic.
+Tüm etiketler ↗: All tags ↗
+Yazılarda ele alınan teknolojiler, araçlar ve yöntemler.: Technologies, tools and techniques covered in the articles.
+Konulara dön ↗: Back to articles ↗
+← Tüm konular: ← All topics
+← Tüm etiketler: ← All tags
+Yazıların başlıklarında ve içeriklerinde anahtar kelimeyle ara.: Search article titles and content by keyword.
+Arama kelimesi: Search term
+"Örneğin: DLL, malware, Windows…": "For example: DLL, malware, Windows…"
+Ara ↗: Search ↗
+Aramak için bir kelime yaz.: Enter a word to search.
+Aranıyor…: Searching…
+Sonuç bulunamadı. Daha kısa veya farklı bir kelime dene.: No results found. Try a shorter or different word.
+Arama yüklenemedi. Biraz sonra tekrar dene veya Yazılar menüsünü aç.: Search could not load. Try again later or open the Articles menu.
+Arama için JavaScript gerekli.: Search requires JavaScript.
+Yazı arşivini aç.: Open the article archive.
+← Tüm yazılar: ← All articles
+YAYIMLANDI: PUBLISHED
+OKUMA SÜRESİ: READING TIME
+DİL: LANGUAGE
+Türkçe: Turkish
+Okumaya başla ↓: Start reading ↓
+Yazı etiketleri: Article tags
+Bağlantıyı kopyala: Copy link
+Bağlantı kopyalandı.: Link copied.
+Adres çubuğundaki bağlantıyı kopyalayabilirsin.: You can copy the link from the address bar.
+Diğer yazılar: Other articles
+← ÖNCEKİ YAZI: ← PREVIOUS ARTICLE
+SONRAKİ YAZI →: NEXT ARTICLE →
+İçindekiler: Contents
+↑ Başa dön: ↑ Back to top
+← Diğer yazılar: ← Other articles
+Yazı gezinme: Article navigation
+"Tablo; yatay kaydırılabilir": "Table; scroll horizontally"
+Kod: Code
+Kopyala: Copy
+Kod bloğunu kopyala: Copy code block
+Kopyalandı: Copied
+Kod kopyalandı.: Code copied.
+Kopyalanamadı: Could not copy
+Kodu seçip elle kopyalayabilirsin.: You can select and copy the code manually.
+Görsel: Image
+Gerçek boyut: Actual size
+Kapat ×: Close ×
+Ekrana sığdır: Fit to screen
+"Büyütülmüş görsel; gerçek boyutta kaydırılabilir": "Enlarged image; scrollable at actual size"
+Yazı görseli: Article image
+Büyüt ⤢: Enlarge ⤢
+Bu yol bir yere çıkmıyor.: This path leads nowhere.
+Bağlantı değişmiş olabilir. Araştırma günlüğünde keşfe devam edebilirsin.: The link may have changed. Continue exploring the research journal.
+Yazılara dön ↗: Back to articles ↗
+Sayfa bulunamadı: Page not found
+Yazılarda ara: Search articles
+Yazı arşivi: Article archive
+Eren Can Özmen'in güvenlik araştırmaları, tersine mühendislik notları ve yazılım incelemeleri.: Security research, reverse engineering notes and software analyses by Eren Can Özmen.
+Eren Can Özmen; uygulama güvenliği, tersine mühendislik ve zararlı yazılım analizi.: Eren Can Özmen; application security, reverse engineering and malware analysis.
+Güvenlik araştırmaları, bildirimler ve sertifikalar.: Security research, disclosures and certifications.

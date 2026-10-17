@@ -1,0 +1,9 @@
+---
+layout: lab-base
+---
+<header class="interior-hero archive-hero"><div><h1>Yazılar</h1><p class="interior-lede">Uygulama güvenliği, tersine mühendislik ve zararlı yazılım analizi üzerine teknik yazılar.</p></div><div class="archive-summary"><span class="archive-total">{{ site.posts.size }}</span><span>YAYIMLANMIŞ YAZI</span><a href="{{ '/search/' | relative_url }}">Tüm yazıların içinde ara ↗</a></div></header>
+<section class="archive-browser" aria-labelledby="all-notes-title"><div class="section-label"><h2 id="all-notes-title">Tüm yazılar</h2><a href="{{ '/tags/' | relative_url }}">Etiket dizini ↗</a></div>
+  <div class="archive-controls" hidden><div class="filters" aria-label="Yazıları konuya göre filtrele"><button type="button" data-archive-filter="all" aria-pressed="true">Tümü <span>{{ site.posts.size }}</span></button>{% for category in site.categories %}<button type="button" data-archive-filter="{{ category[0] | escape }}" aria-pressed="false">{{ category[0] }} <span>{{ category[1].size }}</span></button>{% endfor %}</div><label class="archive-search"><span class="sr-only">Başlık, konu veya etikete göre süz</span><span aria-hidden="true">⌕</span><input type="search" placeholder="Yazılarda filtrele…" maxlength="200"></label></div>
+  <p class="sr-only" data-archive-status role="status" aria-live="polite"></p><p class="archive-empty" hidden>Bu filtreye uyan yazı yok. Başka bir kelime dene veya “Tümü”ne geç.</p>
+  {% assign years = site.posts | group_by_exp: 'post', "post.date | date: '%Y'" %}{% for year in years %}<section class="archive-year"><div class="year-label"><h3>{{ year.name }}</h3><span>{{ year.items.size }} YAZI</span></div>{% include lab-post-list.html posts=year.items %}</section>{% endfor %}
+</section>

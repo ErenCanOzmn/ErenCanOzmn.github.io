@@ -1,0 +1,6 @@
+---
+layout: lab-base
+---
+<header class="page-heading"><h1>Etiketler</h1><p>Yazılarda ele alınan teknolojiler, araçlar ve yöntemler.</p></header>
+<div class="index-toolbar"><span>{{ site.tags.size }} ETİKET</span><a href="{{ '/categories/' | relative_url }}">Konulara dön ↗</a></div>
+<div class="tag-directory">{% assign tags = site.tags | sort %}{% for tag in tags %}{% assign slug = tag[0] | slugify %}<a href="{{ '/tags/' | append: slug | append: '/' | relative_url }}"><span><span class="green">#</span>{{ tag[0] | escape }}</span><span class="tag-count">{{ tag[1].size }} yazı ↗</span></a>{% endfor %}</div>

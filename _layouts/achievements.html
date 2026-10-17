@@ -1,0 +1,16 @@
+---
+layout: lab-base
+---
+{% assign achievements = site.data.achievements %}
+{% assign published_cves = achievements.cves | where: 'status', 'Published' | sort: 'date' | reverse %}
+{% assign pending_cves = achievements.cves | where: 'status', 'Unpublished' %}
+{% assign ordered_cves = published_cves | concat: pending_cves %}
+<header class="interior-hero achievements-hero">
+  <div><a class="back-link" href="{{ '/' | relative_url }}">← Ana sayfa</a><h1>Achievements</h1><p class="interior-lede">CVE kayıtları, Hall of Fame listeleri ve mesleki sertifikalarım.</p></div>
+  <dl class="achievement-totals"><div><dt>CVE</dt><dd class="cve-count"><span>{{ published_cves.size }} yayımlanmış</span><span>{{ pending_cves.size }} bekleyen</span></dd></div><div><dt>Hall of Fame</dt><dd>{{ achievements.recognitions.size }}</dd></div><div><dt>Sertifika</dt><dd>{{ achievements.certifications.size }}</dd></div></dl>
+</header>
+<div class="achievements-layout">
+  <nav class="section-rail" aria-label="Başarı bölümleri"><span class="eyebrow">BU SAYFADA</span><a href="#cves">CVE</a><a href="#recognition">Hall of Fame</a><a href="#certificates">Sertifikalar</a></nav>
+  {% include achievement-records.html %}
+</div>
+<div class="interior-next"><div><h2>Yazılar</h2><p>Güvenlik incelemeleri ve teknik notlarım.</p></div><a class="text-link" href="{{ '/archives/' | relative_url }}">Tüm yazılar ↗</a></div>

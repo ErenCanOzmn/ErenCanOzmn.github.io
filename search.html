@@ -1,0 +1,9 @@
+---
+layout: lab-base
+title: Yazılarda ara
+permalink: /search/
+---
+<header class="page-heading"><h1>Arama</h1><p>Yazıların başlıklarında ve içeriklerinde anahtar kelimeyle ara.</p></header>
+<form class="search-form" role="search" data-index-url="{{ '/assets/search.json' | relative_url }}"><label for="search-query">Arama kelimesi</label><div class="search-field"><span aria-hidden="true">⌕</span><input id="search-query" name="q" type="search" placeholder="Örneğin: DLL, malware, Windows…" autocomplete="off" maxlength="200"><button type="submit">Ara ↗</button></div></form>
+<p class="search-status" role="status" aria-live="polite">Aramak için bir kelime yaz.</p><div class="search-results entry-list"></div>
+<noscript><p>Arama için JavaScript gerekli. <a href="{{ '/archives/' | relative_url }}">Yazı arşivini aç.</a></p></noscript>

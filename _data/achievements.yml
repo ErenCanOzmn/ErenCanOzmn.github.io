@@ -1,0 +1,49 @@
+cves:
+  - id: CVE-2026-83681
+    url: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-83681
+    status: Published
+    label: Yayımlandı
+    product: Microsoft PowerToys
+    description: Microsoft PowerToys’ta zayıf kimlik doğrulama nedeniyle yetkili bir saldırganın yerel ortamda yetkisiz değişiklik yapmasına olanak tanıyan açık.
+    type: Weak Authentication
+    cwe: CWE-1390
+    date: '2026-10-13'
+  - id: CVE-2026-94380
+    url: https://www.cve.org/CVERecord?id=CVE-2026-94380
+    status: Unpublished
+    label: Henüz yayımlanmadı
+    product: Yayımlanmamış kayıt
+    description: Ürün ve teknik ayrıntılar henüz paylaşılmadı.
+  - id: CVE-2026-15585
+    url: https://www.cve.org/CVERecord?id=CVE-2026-15585
+    status: Published
+    label: Yayımlandı
+    product: AKINSOFT Wolvox9 ERP
+    component: KontrolPanel.exe
+    description: Wolvox9 ERP’nin KontrolPanel.exe bileşeninde tespit edilen dizin geçişi (Path Traversal) açığı.
+    type: Path Traversal
+    cwe: CWE-22
+    date: '2026-08-18'
+  - id: CVE-2026-4256
+    url: https://www.cve.org/CVERecord?id=CVE-2026-4256
+    status: Published
+    label: Yayımlandı
+    product: PEAKUP PassGate
+    description: PassGate ürününde LDAP sorgularının işlenmesiyle ilgili LDAP Injection açığı.
+    type: LDAP Injection
+    cwe: CWE-90
+    date: '2026-07-09'
+recognitions:
+  - organization: MSI
+    title: Security Hall of Fame
+    name: Eren Can Ozmen
+    description: MSI Security Hall of Fame listesinde Haziran 2026 döneminde yer alan güvenlik araştırması katkım.
+    date: Haziran 2026
+    url: https://csr.msi.com/global/product-security-advisories
+certifications:
+  - short: eWPTX
+    title: Web Application Penetration Tester eXtreme
+    issuer: INE
+  - short: eCPPT
+    title: Certified Professional Penetration Tester
+    issuer: INE

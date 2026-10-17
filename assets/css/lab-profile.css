@@ -1,0 +1,46 @@
+/* Profile-led homepage, with green reserved for small accents. */
+.header .wordmark{display:inline-flex;align-items:baseline;gap:7px;position:relative;flex-shrink:0;padding:9px 0;font:800 italic 28px/1 'Manrope',sans-serif;letter-spacing:-1.8px;color:#f0eff4}
+.wordmark-name{position:relative;display:block;transition:letter-spacing .3s,color .3s}
+.wordmark-name:after{content:'';position:absolute;left:1px;bottom:-7px;width:28px;height:2px;background:var(--green);transform:skewX(-25deg);transition:width .35s}
+.wordmark-dot{width:5px;height:5px;background:var(--green);transform:skewX(-15deg)}
+.wordmark:hover .wordmark-name{letter-spacing:-1.1px;color:#fff}
+.wordmark:hover .wordmark-name:after{width:100%}
+body:before{height:1000px;background:radial-gradient(ellipse at 82% 34%,#7979bc15,transparent 50%),radial-gradient(ellipse at 3% 2%,#8784aa08,transparent 45%)}
+.shell{max-width:1240px}.header{min-height:94px;border-color:#ffffff0c}.header nav{font-family:var(--sans);font-size:13px}.header nav .active{color:var(--text)}nav .active:before,nav .active:after{display:none}.header nav a{position:relative;padding:12px 0}.header nav .active:after{display:block;content:'';position:absolute;bottom:3px;left:0;margin:0;width:16px;height:2px;background:var(--green)}
+.hero{position:relative;grid-template-columns:1.2fr 1fr;min-height:730px;padding:84px 0 120px;gap:55px;isolation:isolate}.hero-grid{position:absolute;right:-20px;top:40px;width:530px;height:530px;background-image:radial-gradient(#83838f30 .7px,transparent .7px);background-size:22px 22px;mask-image:radial-gradient(ellipse,#000,transparent 69%);z-index:-1;pointer-events:none}.hero .eyebrow{font-size:12px;letter-spacing:1.65px;margin-bottom:28px}.hello{font-size:22px;color:var(--muted);margin:0 0 12px;font-weight:500}h1{font-size:clamp(60px,6.5vw,86px);line-height:1.08;letter-spacing:-4.5px;margin-bottom:22px}.alias-line{display:flex;align-items:center;gap:13px;font:12px var(--mono);margin-bottom:27px;flex-wrap:wrap}.alias{color:var(--green)}.alias-divider{color:#555766}.role{color:#c9c7d8}.cursor{height:12px;width:5px;background:var(--green)}.lede{font-size:17px;color:#dedde5;margin-bottom:9px;line-height:1.7}.sublede{font-size:13px;max-width:420px;color:var(--muted)}.hero-actions{margin-top:30px}.button{border-radius:6px;background:#ededf3;border-color:#ededf3;color:#1a1b23;font-family:var(--sans);font-size:12px;font-weight:700;padding:14px 21px;transition:transform .25s,box-shadow .25s,background .25s}.button:hover{background:#fff;transform:translateY(-3px);box-shadow:0 8px 26px #ffffff12}.text-link{color:#c5c4d1}.hero-actions .text-link{font-family:var(--sans)}.scroll-cue{position:absolute;bottom:37px;left:0;display:flex;gap:12px;align-items:center;font:12px var(--mono);letter-spacing:2px;color:#8e8e9e}.scroll-cue>span{font-size:16px;color:var(--green);animation:nudge 2s ease-in-out infinite}.topic-strip{border-color:#ffffff0d;color:#92919f;padding:23px 0;font-size:12px}.topic-strip span:first-child{color:#b3b0c3}.research{padding-top:75px}h2{font-size:29px}.filters button{border-radius:5px;background:#17181f;color:#aaa8b7;padding:10px 14px}.filters button[aria-pressed=true]{background:#22242b;border-color:#646775;color:#e8e8ed}.filters button:hover{border-color:#8b919e}.post-row{padding:31px 16px 31px 0;border-color:#ffffff10;transition:background .25s,transform .25s}.post-row:hover{background:#ffffff03;transform:translateX(5px)}.post-meta>span:first-child{color:#b5b0ca}.post-number{color:#767582}.post-arrow{color:#aeabba;transition:transform .25s,color .25s}.post-row:hover .post-arrow{color:var(--green);transform:translate(3px,-3px)}.latest{color:var(--green);border-color:#46594e}.post-content h3{font-weight:600}.post-content p{color:#9694a4}.closing{background:linear-gradient(90deg,#9c91d108,transparent);border-left-color:#777183;border-radius:0 12px 12px 0}.footer{border-color:#ffffff10;padding-bottom:38px}.reading-progress{position:fixed;top:0;left:0;width:100%;height:2px;background:var(--green);z-index:50;transform:scaleX(0);transform-origin:left}
+@media(prefers-reduced-motion:no-preference){.intro{animation:enter .85s both}.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s,transform .65s}.reveal.is-visible{opacity:1;transform:translateY(0)}}
+@keyframes enter{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}@keyframes nudge{50%{transform:translateY(4px)}}
+@media(max-width:1000px){.hero{gap:25px;min-height:670px}.hero h1{font-size:68px}.hero .eyebrow{font-size:12px;letter-spacing:1px}}
+@media(max-width:760px){.header{min-height:83px}.header nav{font-size:13px;gap:19px}.hero{grid-template-columns:1fr;padding:49px 0 90px;gap:42px;min-height:0}.hero h1{font-size:clamp(62px,13vw,86px);letter-spacing:-3.5px}.hero .eyebrow{font-size:12px;margin-bottom:22px}.hello{font-size:19px}.intro{max-width:550px}.hero-grid{right:0;top:auto;bottom:50px;width:100%;height:440px}.scroll-cue{bottom:25px}.research{padding-top:45px}.post-row:hover{transform:none}.closing{margin-bottom:40px}.role{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.button:hover{transform:none}}
+
+/* Let large monitors use their width; keep text measures readable. */
+@media(min-width:1100px){
+  .shell{max-width:none;width:100%;padding-inline:clamp(48px,5vw,160px)}
+  .hero{grid-template-columns:1.1fr 1fr;column-gap:clamp(55px,6vw,180px)}
+  .hero h1{font-size:clamp(80px,5.6vw,144px)}
+  .hero .lede{max-width:620px;font-size:clamp(17px,1.15vw,23px)}
+  .hero .sublede{max-width:560px;font-size:clamp(13px,.85vw,17px)}
+  .hero-grid{width:55%;height:90%;right:0}
+  .closing{padding-right:32px}
+}
+@media(min-width:1400px){
+  .header{min-height:108px}
+  .header .wordmark{font-size:32px}
+  .header nav{font-size:14px;gap:40px}
+  .hero{min-height:780px;padding-block:88px 120px}
+  .hero .eyebrow{font-size:12px}
+  .topic-strip{font-size:12px}
+  .post-content h3{font-size:23px}
+  .post-content p{font-size:13px}
+}
+@media(min-width:1700px){
+  .post-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(40px,4vw,120px)}
+  .post-row{grid-template-columns:32px minmax(0,1fr) 24px}
+  .section-heading h2{font-size:34px}
+  .hero{min-height:850px}
+  .hero-actions{margin-top:38px}
+}
+@media(max-width:400px){.header .wordmark{font-size:23px}.header nav{font-size:13px;gap:12px}}
+
+/* Preserve the entire chair, cat and keyboard scene instead of cropping as a face. */

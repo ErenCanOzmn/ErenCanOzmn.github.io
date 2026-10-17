@@ -1,0 +1,11 @@
+.header nav{flex-wrap:wrap}
+.header nav{margin-left:auto}
+.language-switch{display:flex;flex-shrink:0;align-items:center;gap:3px;padding:3px;border:1px solid var(--line);border-radius:5px}
+.language-switch[hidden]{display:none}
+.language-switch button{border:0;border-radius:3px;padding:7px 8px;background:transparent;color:var(--muted);font:12px var(--mono);cursor:pointer;min-height:32px;min-width:34px}
+.language-switch button[aria-pressed=true]{color:var(--green);background:#a4f86a12}
+.language-switch button:hover{color:var(--text)}
+@media(max-width:1100px){.header nav{gap:18px}}
+@media(max-width:760px){.header .wordmark{order:0;margin-right:auto}.header .language-switch{order:1}.header nav{order:2;margin-left:0}}
+@media(max-width:760px){.header{flex-wrap:wrap;justify-content:flex-start;gap:14px;padding-block:22px;min-height:0}.header nav{width:100%;justify-content:space-between;gap:10px;font-size:13px}.footer{flex-wrap:wrap}}
+@media(max-width:380px){.header nav{font-size:13px}}

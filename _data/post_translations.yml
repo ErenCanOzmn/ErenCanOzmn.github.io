@@ -1,0 +1,970 @@
+2026-06-22-Mobile-Malware-Sevgi-com.txluwgiw:
+  lang: tr
+  title: 'Mobil Zararlı Yazılım: Sevgi (com.txluwgiw)'
+  description: 'Sevgi Android uygulamasının statik analizi, analiz karşıtı teknikleri ve dinamik analiz sırasında karşılaşılan sınırlamalar.'
+  body: |
+    ## Giriş
+
+    Merhaba, ben **Dızmana**. Önceki incelemede bir bankacılık truva atını native RC4 rutinine kadar parçalamıştık. Bu kez hikâye farklı bitiyor; anlatılmaya değer olmasının nedeni de bu.
+
+    Örneğimiz, **Sevgi** adlı Türkçe bir arkadaşlık dolandırıcılığı uygulaması. Dosyayı doğrudan **URLhaus** açık akışından aldım. `creduz` kampanya etiketi altında, benzer alan adlarından oluşan bir grubun yanında listeleniyordu. Planım basitti: metinleri çözmek, C2’yi bulmak, emülatörde sunucuyla bağlantısını izlemek ve bitirmek. Statik analiz planlandığı gibi ilerledi. Dinamik analiz ise ilerlemedi. Bu zararlı, bir analistin kendisini izleyeceğini hesaba katan biri tarafından hazırlanmış ve buna göre davranıyor. Yazının sonunda, kâğıt üzerinde ayrıntılarıyla anladığımız fakat sandbox içinde **canlı davranışını göstermeyi reddeden** bir örnek ve onu harekete geçirmek için denediğim yöntemleri göreceksiniz.
+
+    Bu, zararlının kısmen kazandığı bir mücadelenin yazısı. Çıkarılan dersler, sorunsuz tamamlanan bir başka analizden daha öğretici.
+
+    ----------
+
+    ## Zararlı Yazılım Profili ve IOC’ler
+
+    ### Genel Bakış
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **Kampanya / aile** | `creduz` (Türkçe arkadaşlık dolandırıcılığı, Android casus yazılımı/bot) |
+    | **Uygulama adı** | Sevgi |
+    | **Payload paketi** | `txluwgiw.com` |
+    | **Dropper paketi** | `com.fepsfdmbeu.nlivobl` |
+    | **Dropper SHA-256** | `79287bab2f1c02cf2623efb3c997128d4eb704b4d509fea702c90ddec09b598e` |
+    | **Payload SHA-256** | `ebb1510bce00dd783daa872f2d2bb1d1e3ac9e11d47915248c7f80f8ba6deeda` |
+    | **Sahte imzalama CN değeri** | `com_android_nfc` (`O=Google Inc.` kimliğini taklit ediyor) |
+
+    ### Komuta ve Kontrol (C2)
+
+    | Tür | Değer |
+    |---|---|
+    | **C2 / kampanya sunucusu** | `avtorizaciadating1.shop` |
+    | **Dağıtım sunucusu** | `uzdating1.shop` |
+    | **İlişkili alan adları** | `datingtj22.shop`, `da-tinguz1.shop`, `razdev11tj.shop`, `kis2kis.shop` |
+
+    ### Kriptografi ve Kod Gizleme
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **Metin şifreleme** | Önce `Base64decode(s)`, ardından tekrarlayan anahtarlı **XOR** |
+    | **XOR anahtarı** | `JrvwjFPNf9yb3cwjaXNSLTTW7VN6` |
+    | **Çözme metodu** | `lmoeqeyx.kjoi.lcmobcomyjbfxlly.ppfuynoermcebboy()` |
+    | **Native modül** | `okhttpintercept.so` (şifreli ELF) ve `.dat` yapılandırması |
+
+    ### Hedefler
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **Birincil bölge** | Türkiye |
+    | **Yem teması** | Çevrim içi arkadaşlık / romantik ilişki |
+    | **Kamuflaj uygulaması** | Gizlenmek için kullanılan, truva atı eklenmiş WhatsApp kod tabanı |
+
+    ----------
+
+    ## 1. Aşama: Örneğin Elde Edilmesi
+
+    Bu kez karmaşık bir User-Agent engeli yoktu. `creduz` operatörleri dropper’larını kısa ömürlü `.shop` alan adları üzerinden dağıtıyor. Güvenlik topluluğu bunları hızlı tespit ettiği için örnek, doğrudan indirme bağlantısıyla URLhaus akışında zaten bulunuyordu. Bunun kendisi bir ders: incelemeye başlamak için bir kurbanın telefonuna ihtiyacınız yok; açık tehdit istihbaratının nerede yayımlandığını bilmeniz yeterli.
+
+    ![URLhaus creduz kampanya akışı](/assets/images/sevgi/urlhaus.png)
+
+    APK’yı indirip özet değerini hesapladım. VirusTotal kontrolünde çok sayıda motorun örneği Android truva atı olarak işaretlediğini gördüm; elimde bilinen bir tehdit vardı.
+
+    ![VirusTotal tespitleri](/assets/images/sevgi/virustotal.png)
+
+    Ardından dosyayı **Jadx** içine yükledim. İlk baktığım yer her zaman manifesttir; izin listesi, davranışa dair önemli ipuçlarını daha en baştan verir.
+
+    ![Sevgi manifestindeki izinler](/assets/images/sevgi/manifest.png)
+
+    Liste belirli bir amaç doğrultusunda saldırgandı. Tek kullanımlık parolaları yakalamak için `RECEIVE_SMS` ve `READ_SMS`; cihazın gösterdiği bildirimleri okumak için `BIND_NOTIFICATION_LISTENER_SERVICE`; kalıcılık için `RECEIVE_BOOT_COMPLETED`; yüklü uygulamaları listelemek için `QUERY_ALL_PACKAGES` vardı. Bir **dropper** işareti olan `REQUEST_INSTALL_PACKAGES` da eklenmişti. Dıştaki APK asıl zararlı değildi; onu teslim eden araçtı.
+
+    ----------
+
+    ## 2. Aşama: Metinlerin Çözülmesi
+
+    Dropper kaynaklarında üç şifreli veri buldum: yaklaşık 827 KB boyutundaki `yokswa.spe`, `pgixukmo.sps` ve `rlpemtdk.sps`. En büyüğü asıl payload’dı. Paketleme ve şifreleme sayesinde tarayıcıya yüklenen dosya, sonunda çalışan koddan farklı görünüyordu. Dosyayı açınca `txluwgiw.com` paket adına sahip `yokswa_payload.apk` ortaya çıktı; incelemeye Jadx içinde bununla devam ettim.
+
+    ![Çıkarılan payload APK’sı](/assets/images/sevgi/payload_extracted.png)
+
+    Payload, modern Android zararlılarında alışıldık biçimde gizlenmişti. Sınıf adları rastgeleydi ve anlamlı her metin `lcmobcomyjbfxlly.ppfuynoermcebboy("...")` benzeri bir çağrıya sarılmıştı. Metinler kapalıyken kodu anlamak zor olduğundan ilk hedef çözme rutini oldu.
+
+    ![Gizlenmiş sınıf ağacı](/assets/images/sevgi/obfuscated.png)
+
+    Rutin kısaydı: sabit metni alıyor, Base64’ten çözüyor ve baytları `JrvwjFPNf9yb3cwjaXNSLTTW7VN6` anahtarıyla XOR’luyordu. Girdi anahtardan uzunsa anahtar başa sarılıyordu. Native kod, anahtar türetme veya sıra dışı bir işlem yoktu; Base64 üzerine klasik tekrarlayan anahtarlı XOR uygulanıyordu.
+
+    ![Metin çözme rutini](/assets/images/sevgi/decryptor.png)
+
+    Tüm açılmış dosyaları dolaşan, `ppfuynoermcebboy("...")` içindeki sabitleri çıkarıp çözen küçük bir Python betiği yazdım. Bu betik, 2.636 şifreli dizeyi okunabilir metne dönüştürdü ve sonraki adımların temelini oluşturdu.
+
+    ![Çözülmüş metinlerin çıktısı](/assets/images/sevgi/deobf.png)
+
+    İlk önemli sonuç hemen geldi: çözülen metinlerden biri `https://avtorizaciadating1.shop` idi. C2 adresini bulmuştuk.
+
+    ----------
+
+    ## 3. Aşama: Kodun Anlattıkları
+
+    Metinler açılınca zararlının yapısı belirginleşti. Binlerce dize **WhatsApp** bileşenlerine aitti: mesaj tabloları, arama ekranları ve bot istemi depoları. Payload, sınıflara yüzeysel bakan birinin tanıdık bir mesajlaşma uygulaması görüp geçmesi için WhatsApp kod tabanını kamuflaj olarak taşıyor. Asıl önemli bileşenler bu yapıya eklenmiş.
+
+    Casus yazılımın merkezinde `NotificationListenerService` türevi `txluwgiw.com.Ulrjn6e58iecw` bulunuyor. Android’de bildirim erişimi güçlü bir yetenek. Banka OTP’leri, giriş uyarıları ve iki faktörlü doğrulama bildirimleri bildirim alanından geçiyor; bir dinleyici SMS izinlerini kullanmadan bunları okuyabiliyor. Uygulamanın ayrıca istediği SMS erişimiyle birleşince, banka hesabını koruyan kodları toplamak için bir veri hattı oluşuyor. Çözülen metinlerde WhatsApp veritabanındaki `message_quarantine`, `chat_lock` ve engelleme listesi için sorgular da vardı.
+
+    Kalıcılık katmanlıydı: açılış alıcısı, paket değişimi ve yeniden başlatma işleyicileri, arka planda çalışmayı sürdürmek için de `WorkManager` görevleri kullanılıyordu.
+
+    Ardından incelemenin geri kalanını belirleyen bölüme geldim. Bazı çözülmüş metinler bankalarla değil, **analistle** ilgiliydi:
+
+    <!-- original-code:0 -->
+
+    Bunlar zararlının kendi ortamı hakkında raporladığı alanlardı. Devamında bunları besleyen verileri buldum: emülatör izleri (`goldfish`, `ranchu`, `BlueStacks`, `Genymotion`, `Nox`), Frida izleri (`frida-server`, `frida-gadget.so`, `gum-js-loop`, `linjector`), varsayılan Frida portu `27042` ve çevresindeki portlar, `su` ikilisi yolları, root yöneticileri ve `mitmproxy`, Burp, Charles ile Fiddler arayan bir proxy tespit modülü. Bu örnek yalnızca payload’ını çalıştırmıyor; önce **“İzleniyor muyum?”** diye soruyor.
+
+    C2’yi `Gzwwswrgsnpblabpmkuxv.Wuunlygkbuvrxeayayefkfbktxgsvxh` sınıfına kadar izledim. `IgYCBxl8f2EHTw0NQQoNCwIxLzctID05UGdgRSIdBg==` Base64 verisi çalışma zamanında `https://avtorizaciadating1.shop` adresine çözülüyor ve operatöre uzanan bağlantıyı kuran bir `Intent` içine aktarılıyor.
+
+    ![Kod içinde oluşturulan C2 adresi](/assets/images/sevgi/c2_in_code.png)
+
+    Daha sonra ele alacağım native bileşeni de kaydettim: `.dat` yapılandırmasıyla eşleşen şifreli bir `okhttpintercept.so`. Kâğıt üzerinde yapı açıktı. Sırada onu çalıştırmak vardı.
+
+    ----------
+
+    ## 4. Aşama: Sandbox Çıkmazı
+
+    Çoğu yazının yakalanmış C2 trafiği ekran görüntüsüne geçtiği yerdeyiz. Ancak burada olan bu değildi; gerçek sonuç daha öğretici.
+
+    Standart bir Android 13 emülatörü kurup bütün paketleri `tcpdump` ile kaydettim. Temiz açılışta, hiçbir enstrümantasyon aracı bağlı olmadan zararlıyı çalıştırdım. Açılış alıcısıyla başladı ve hayatta kaldı. Yirmi dakikadan uzun süre boyunca Google dışındaki hedeflere gönderdiği paket sayısı tam olarak **sıfırdı**. `avtorizaciadating1.shop` için DNS sorgusu yoktu. Herhangi bir `.shop` sunucusuna bağlantı da yoktu.
+
+    ![Tam paket kaydında yalnızca Google DNS trafiği](/assets/images/sevgi/pcap.png)
+
+    Bu, analiz karşıtı mekanizmaların devrede olduğu bir durumdu. Zararlı hem emülatörü hem Frida’yı kontrol ediyor. Emülatörde doğrudan çalıştırınca sanal donanımı fark edip sessiz kalıyor. Donanımı farklı göstermek için Frida bağlayınca bu kez Frida’yı algılayıp kapanıyor. İki savunma birbirini tamamlıyor.
+
+    Sorunu iki yönden ele aldım. Önce Frida’nın görünürlüğünü azalttım: `frida-server` adını değiştirdim ve `27042` yerine standart olmayan bir porta bağladım. Böylece örneğin kullandığı süreç adı ve port kontrollerini geçtim. Uygulama enstrümantasyon altında çalışmaya devam etti. Küçük bir ayrıntı: Frida süreci paket adı yerine `Sevgi` uygulama etiketiyle gösteriyordu; bu nedenle bağlantıyı PID üzerinden kurmak gerekti.
+
+    İkinci adımda kontrolleri doğrudan hedefledim. Payload’ı **apktool** ile açıp tüm tespitleri çalıştıran ve altı boolean sonuç döndüren ortak bir metoda ulaştım. Smali üzerinde bu metodu temiz cihaz sonucu döndürecek şekilde değiştirdim; APK’yı yeniden derledim, imzaladım ve yükledim. Sorunsuz çalışması da bir bilgi verdi: bu denemede zararlının kendi imzasını doğrulayan bir kontrolü devreye girmedi ve yeniden paketlenmiş sürüm çalıştı.
+
+    Buna rağmen sessizlik devam etti.
+
+    Bu sessizliğin nedenini araştırdım. Uygulamanın kendi veri dizinine yazdığı çalışma zamanı dosyaları önemli ipuçları verdi. `WorkManager` veritabanında iki zamanlanmış görev vardı:
+
+    ![WorkManager zamanlanmış görevleri](/assets/images/sevgi/workmanager.png)
+
+    On beş dakikalık görev bir **watchdog**. Yalnızca zararlının alarmının kayıtlı olup olmadığını kontrol ediyor, değilse tekrar kuruyor. Bu iletişim değil, kalıcılık mekanizması; kısa paket kaydında trafik görünmemesini açıklıyor. Gerçek ağ görevi ise `setTransferCompleted` adlı metoda sahip aktarım modülünü çalıştıran **yirmi dört saatlik** bir coroutine görevi.
+
+    Günlük bağlantı aralığı sessiz kaydı açıklayabileceğinden beklemek yerine görevleri zorladım. Android zamanlanmış işleri hemen çalıştırabildiği için zararlının her görevini elle tetikledim.
+
+    ![Zamanlanmış görevlerin zorla çalıştırılması](/assets/images/sevgi/forcejobs.png)
+
+    Sistem her biri için `Running job [FORCED]` yanıtını verdi. Zararlı yine veri göndermedi. Dinleyiciyi beslemek için sahte bankacılık bildirimleri oluşturdum, ardından günlük görevi tekrar çalıştırdım. Veritabanı boş kaldı ve cihazdan trafik çıkmadı.
+
+    Bu noktadaki değerlendirmem, payload’ın yalnızca zamanlayıcıyla bağlantı kurmadığı yönündeydi. Aktarım görevinin gönderecek gerçek hedef verisine ihtiyaç duyması ve tam etkinleşmenin normal bulaşma sırasında dropper’ın hazırladığı şifreli yapılandırma ile native kütüphaneye bağlı olması güçlü bir olasılık olarak öne çıktı. Örneği bu zincirden ayırıp sandbox’a yerleştirmek, bütün etkinleşme koşullarını sağlamamıştı.
+
+    ----------
+
+    ## 5. Aşama: Sonuç
+
+    **Statik analiz başarılıydı.** Dropper’ı açtık, payload’ı çıkarıp çözdük, Base64 ve XOR tabanlı metin gizlemeyi küçük bir betikle kaldırdık ve `avtorizaciadating1.shop` C2 adresini elde ettik. Bildirim yakalama, OTP için SMS erişimi, katmanlı kalıcılık ve kamuflaj olarak kullanılan WhatsApp kod tabanını haritaladık.
+
+    **Dinamik analiz ise kesin bir sonuç vermedi.** Emülatör, Frida, root ve proxy tespitleri birbirini tamamlıyor. Frida izlerini gizledim, tespitlerin ortak metodunu değiştirdim; buna rağmen C2 trafiği oluşmadı. Dropper tarafından hazırlanan native modül, yapılandırma ve gerçek hedef verisinin varlığı, kalan etkinleşme koşullarına ilişkin başlıca açıklamalardı.
+
+    **Çıkarılacak ders bu.** Sorunsuz tamamlanan bir analiz tatmin edici olabilir, ancak böyle bir örnek daha fazla şey öğretir. Gelişmiş, yaygın zararlılar için steril bir emülatör her zaman yeterli değil. Bazen dürüst sonuç, “Yeteneklerini ortaya çıkardım; ancak bunları laboratuvarda çalışırken gözlemleyemedim” demektir. Sonraki aşamada, tam dropper–payload zincirini gerçek ve root edilmiş bir cihazda incelemeyi planlıyorum.
+
+    Canlı altyapıya ilişkin not: Yazıdaki C2 ve dağıtım alan adları tehdit altyapısı olarak ele alınmalıdır. Kapatılmaları için **USOM**’a bildirdim. Bu adresleri tarayıcıda açmayın.
+
+    Bir sonraki incelemede görüşmek üzere. Güvende kalın.
+
+    **— Dızmana**
+
+2025-12-07-Mobile-Malware-com.watermother25:
+  lang: tr
+  title: 'Mobil Zararlı Yazılım: com.watermother25'
+  description: 'Android zararlı yazılımı com.watermother25’in bileşenleri, şifreleme rutinleri ve ihlal göstergeleri üzerinden incelenmesi.'
+  body: |
+    ## Giriş
+
+    Merhaba, ben **Dızmana**. Bugün gelişmiş bir mobil zararlı yazılımı parçalarına ayıracağız. İnceleme, bir arkadaşımın Türkçe bir SMS almasıyla başladı: _“Merhaba, bu fotoğraf senin mi?”_ Mesajın devamında zararlı bir bağlantı vardı. Dikkat çekici olan, mesajın tanıdığı bir kişiden gelmesiydi; bu durum solucan benzeri bir yayılma mekanizmasına işaret ediyordu. Arkadaşımdan mesajı iletmesini istedim ve analiz böyle başladı.
+
+    ----------
+
+    ## Zararlı Yazılım Profili ve IOC’ler
+
+    Tersine mühendislik adımlarına geçmeden önce, inceleme sırasında elde edilen tehdit istihbaratının teknik özetini paylaşalım.
+
+    ### Genel Bakış
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **Zararlı yazılım ailesi** | Cerberus / Alien (bankacılık truva atı) |
+    | **Uygulama adı** | System Update |
+    | **Paket adı** | `com.watermother25` |
+    | **Dropper paket adı** | `com.android.uz032wyx` |
+    | **MD5** | `E6B50F6101653E23890FB5DCCFB78D25` |
+    | **SHA-1** | `B15101F896B04C89BF4510FA344890630B7CF058` |
+
+    ### Komuta ve Kontrol (C2)
+
+    | Tür | Değer |
+    |---|---|
+    | **Ana C2 IP adresi** | `45.86.86.128` (bulletproof hosting) |
+    | **Yedek C2 IP adresi** | `196.251.100.103` |
+
+    ### Kriptografi ve Kod Gizleme
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **RC4 anahtarı** | `YDBbWqd5CO2F6byj7AHHHjdcVlsNIg0h` |
+    | **Kullanım amacı** | Metin dizelerinin gizlenmesi |
+    | **AES başlangıç değeri / Bot kimliği** | `630210705` |
+    | **Kullanım amacı** | Ağ şifreleme anahtarının türetilmesi |
+
+    ### Hedefler
+
+    | Özellik | Ayrıntı |
+    |---|---|
+    | **Birincil hedef bölge** | Türkiye |
+    | **İkincil hedef bölge** | Küresel |
+
+    ## 1. Aşama: Dropper
+
+    Benzer kampanyalarda sık görüldüğü gibi, zararlıyı standart bir masaüstü tarayıcısıyla indirme girişimi başarısız oldu. Sunucu, erişimi yalnızca mobil cihazlarla sınırlamak için **User-Agent kontrolü** uyguluyordu. Mobil bir User-Agent kullanarak bu basit kontrolü geçtim ve örneği indirdim.
+
+    **Statik analizle** başladım; kaynak kodu incelemek için APK’yı **Jadx** içine yükledim.
+
+    Manifestteki ilk uyarı işareti, aşırı ve şüpheli izinlerdi. Uygulama doğrudan SMS gönderme yetkisine sahip değildi; bu, ilk bulaşma senaryosuyla uyuşmuyordu. Ancak bir izin hemen dikkat çekti: **`REQUEST_INSTALL_PACKAGES`**. Bu, bir **dropper** ile karşı karşıya olduğumuza ilişkin şüphemi doğruladı.
+
+    ![Dropper manifesti ve izinleri](/assets/images/watermother25/wm1.png)
+
+    Kodun derinliklerinde, belirli bir paketin varlığını kontrol eden bir blok buldum: **`com.watermother25`**. Böylece dropper’ın yüklemeyi amaçladığı asıl payload’ın adı ortaya çıktı.
+
+    `MainActivity` üzerindeki inceleme bir kaynak dosyasına işaret etti. APK’yı **apktool** ile açıp `res/raw` dizinindeki dosyaları boyuta göre sıraladım. Diğerlerinden belirgin biçimde büyük, yaklaşık 1,1 MB boyutunda **`9W`** adlı bir dosya vardı. Dosyayı çıkardım; ancak kısa süre sonra göreceğim gibi, kodu okumak onu bulmak kadar kolay olmayacaktı.
+
+    ![res/raw içindeki payload dosyası](/assets/images/watermother25/wm2.png)
+
+    ![Çıkarılan 9W dosyası](/assets/images/watermother25/wm3.png)
+
+    ----------
+
+    ## 2. Aşama: Payload’ın İncelenmesi
+
+    Çıkardığım `9W` dosyasını **Jadx** içine yükleyince şüphelerim doğrulandı. Paket adı, dropper’ın kontrol ettiği adla aynıydı: **`com.watermother25`**. Manifest incelemesi asıl zararlı bileşeni ortaya çıkardı. Dropper’ın kapıyı açtığı temel payload buydu. İzin kümesi oldukça saldırgandı ve girişte bahsettiğim solucan benzeri yayılma mekanizmasının izlerini taşıyordu.
+
+    Listenin başında **`BIND_ACCESSIBILITY_SERVICE`** vardı. Zararlının “beyni” gibi çalışan erişilebilirlik servisi; ekran içeriğini okuma, kullanıcı tıklamalarını taklit etme ve tuş vuruşlarını kaydetme gibi geniş yetenekler sağlıyor. **`SYSTEM_ALERT_WINDOW`**, gerçek bankacılık uygulamalarının üzerine sahte giriş ekranları bindiren oltalama saldırılarını kolaylaştırıyor. **`READ_SMS`** ve **`RECEIVE_SMS`**, 2FA/OTP kodlarını gerçek zamanlı yakalamak için kullanılıyor. **`READ_CONTACTS`** ile **`SEND_SMS`** birleştiğinde ise kurbanın adres defteri yeni hedeflere otomatik yayılmanın aracına dönüşüyor.
+
+    ![Payload manifesti ve saldırgan izin kümesi](/assets/images/watermother25/wm4.png)
+
+    ----------
+
+    ## 3. Aşama: Native Katmana İniş
+
+    `MainActivity` içinde kısa fakat kritik bir kod bloğu belirledim. Uygulama, **Java Native Interface (JNI)** aracılığıyla `NOMU` adlı bir kütüphane yüklüyor. Görevi, `emksl` dosyasını çözmek ve elde edilen kodu doğrudan cihaz belleğine yüklemek. Bu, statik tespitten kaçınmak için **Dynamic Code Loading (DCL)** kullanıldığını gösterdi. Şifreli payload’ın kilidini açacak bileşen, `NOMU` native kütüphanesiydi.
+
+    ![NOMU kütüphanesinin yüklenmesi](/assets/images/watermother25/wm5.png)
+
+    Mantığı native katmana taşımak bir gizlenme girişimiydi, ancak aşılamaz bir engel değildi. `libNOMU.so` dosyasını incelemek için Jadx’tan **Ghidra**’ya geçtim. Artık daha düşük bir soyutlama düzeyindeydik: Android Runtime (ART) üzerinde çalışan APK bytecode’unun aksine `.so` dosyaları, makine kodu olarak doğrudan çalışan derlenmiş C++ ikilileridir. Bu da analizin karmaşıklığını artırıyor.
+
+    ![libNOMU.so dosyasının Ghidra’da incelenmesi](/assets/images/watermother25/wm7.png)
+
+    `NOMU` kütüphanesini incelerken, yazarların kodu gizlemeye çalışmasına rağmen çözme anahtarını ikili dosyanın metin dizelerinde açık bıraktığını gördüm. Anahtar elimizdeydi; geriye algoritmayı belirlemek kalmıştı.
+
+    Analizim, AES gibi bir blok şifre yerine **akış şifresine** işaret ediyordu. Bu çıkarımı native koddaki bellek ayırma mantığından yaptım. `calloc`, `param_2` şifreli girdinin boyutu olmak üzere `(param_2 + 1)` boyutunda tampon ayırıyordu. Blok şifre kullanılsaydı, **PKCS7 padding** gibi bir mekanizma için genellikle blok sınırına, örneğin 16 bayta, hizalama beklenirdi. Girdi ve çıktı boyutlarının bire bir eşleşmesiyle döngüdeki bayt bayt **XOR** işlemleri birlikte değerlendirildiğinde, bir akış şifresiyle, özellikle bir **RC4** çeşidiyle karşı karşıya olduğumuz sonucuna vardım.
+
+    ![Şifre çözme rutinindeki bellek ve döngü mantığı](/assets/images/watermother25/wm8.png)
+    ![RC4 benzeri şifre çözme işlemleri](/assets/images/watermother25/wm9.png)
+
+    ----------
+
+    ## 4. Aşama: Çözülmüş Payload’ın İçinde
+
+    `final_payload.dex` başarıyla çözüldükten sonra zararlıyı daha açık görmek için tekrar **Jadx** içine yükledim. Ancak kod yoğun biçimde gizlenmişti: sınıf adları `fddo`, `ifdf` ve `Cimport` gibi anlamsız isimlerden oluşuyor, kritik metinler şifreli tutuluyordu.
+
+    İlk engel metin şifrelemesiydi. `Cimport.fddo("HEX_STRING")` benzeri fonksiyon çağrıları tekrar tekrar karşıma çıktı. `Cimport` sınıfı, `IeBxF5ygaJ9j2uuMnCx` anahtarını sabit olarak kullanan klasik bir **RC4 çözme rutini** içeriyordu. Dizeleri otomatik çözmek için bir Python betiği yazdım. Bu betik, analizin geri kalanını anlamlandıran anahtar oldu.
+
+    ![Şifreli dizelerin çözülmesi](/assets/images/watermother25/wm10.png)
+
+    Dizeler açıldıkça zararlının yetenekleri belirginleşti. `Cdefault` ve `Cswitch` sınıflarını inceleyerek yapılandırmanın ve hedeflerin nasıl yönetildiğini gördüm. Zararlı, durumunu ve hedeflerini muhtemelen `main.xml` veya `params.xml` adlı yerel bir dosyada tutmak için Android **SharedPreferences** mekanizmasını kullanıyor.
+
+    Çözülmüş yapılandırma, Türkiye’deki bankacılık sektörünü hedefleyen geniş bir liste ortaya çıkardı. `block_push_apps` listesinde **Garanti BBVA (`com.garanti.cepsubesi`)**, **Akbank (`com.akbank.android`)**, **Ziraat (`com.ziraat.ziraatmobil`)**, **İşCep** ve **Yapı Kredi** bulunuyordu. Zararlı, OTP’leri kurbandan gizlemek için bu uygulamaların bildirimlerini bastırıyor.
+
+    ![Hedeflenen bankacılık uygulamaları](/assets/images/watermother25/wm12.png)
+
+    `minimize_apps` listesi daha da saldırgandı. **Avast**, **ESET**, **Kaspersky** ve **Malwarebytes** dahil 100’den fazla güvenlik uygulamasını içeriyordu. Erişilebilirlik servisi bu uygulamaları izliyor; kullanıcı birini açmaya çalıştığında hemen “Ana ekran” eylemini tetikleyerek uygulamayı arka plana atıyor. Böylece tarama yapılmasını veya bulaşmanın kaldırılmasını engellemeye çalışıyor. Bu yalnızca veri çalan bir yazılım değil, cihaz üzerinde savunma araçlarıyla da mücadele eden bir zararlıydı.
+
+    ![Arka plana atılacak güvenlik uygulamalarının listesi](/assets/images/watermother25/wm13.png)
+
+    ----------
+
+    ## 5. Aşama: Sonuç
+
+    **Dropper:** İlk `PackageInstaller` hilelerini geçerek kaynakların içinde gizlenen `9W` payload’ını çıkardık.
+
+    **Native gizlenme:** C++ `libNOMU.so` kütüphanesine tersine mühendislik uygulayarak özel **RC4** gerçekleştirimini belirledik ve native katmanda güvende olduğu düşünülen çözme anahtarlarını elde ettik.
+
+    **Geniş gözetim yetenekleri:** Yapılandırmayı çözüp `fddo` paketini inceleyerek zararlının kapsamlı bir **RAT (Remote Access Trojan)** olduğunu belirledik. Ekranı gerçek zamanlı aktaran **VNC**, PIN ve parolaları yakalayabilen **erişilebilirlik servisi** ve izin süreçlerini otomatikleştiren **otomatik tıklama** yetenekleri bulunuyor.
+
+    **Finansal hırsızlık:** Çözülmüş `main.xml`, Türkiye’deki büyük bankalara yönelik bir hedef listesi ortaya çıkardı. Zararlı, kimlik bilgilerini toplamak için **ekran bindirme saldırıları**, 2FA/OTP korumasını aşmak için de **SMS yakalama** kullanıyor.
+
+    **Aktif savunma:** Zararlı, 100’den fazla güvenlik uygulamasını izleyerek kullanıcı tarama başlatmaya çalıştığında bunların kullanımını engelliyor. Kaldırma iletişim kutularına da müdahale ederek sıradan kullanıcı için temizliği zorlaştırıyor.
+
+    - **Hedeflenen bankacılık uygulamaları:** https://github.com/ErenCanOzmn/ErenCanOzmn.github.io/blob/main/assets/watermother_banks.txt
+    - **Hedeflenen zararlı yazılım önleme uygulamaları:** https://github.com/ErenCanOzmn/ErenCanOzmn.github.io/blob/main/assets/watermother_antivirus.txt
+
+    Bir sonraki incelemede görüşmek üzere. Güvende kalın.
+
+    **— Dızmana**
+
+2026-09-27-Thick-Client-Hassas-Veri-Guvenligi:
+  lang: en
+  title: 'Thick Client Security: Application Secrets and Sensitive Data'
+  description: 'Why is decrypting SQL and PFX passwords only when needed not enough? Runtime observations, comparative C# examples and an architecture that removes shared secrets from the client.'
+  body: |
+    Not seeing a plaintext SQL password in a desktop application's configuration file is a good start. But if the application can connect to the database with that password, it obtains a usable value when it establishes the connection. Keeping the password encrypted on disk does not eliminate that step.
+
+    Developers often respond: “We only decrypt the password when needed and delete it when the operation finishes.” This reduces unnecessary data retention in memory. Nevertheless, it does not adequately protect against someone who can observe decryption as it happens.
+
+    We will handle the same data using three designs. The first application retains decrypted data in memory. The second opens it only during an operation and clears its own buffer. The third never receives the shared SQL and PFX passwords. Working examples let us distinguish memory cleanup from an architectural solution.
+
+    All values in this laboratory are synthetic. No SQL server is contacted, no PFX file is imported and no real certificate is used for signing. Password-shaped sample values are regenerated during each preparation.
+
+    ## Storing and using data
+
+    Sensitive data has three distinct states: at rest on disk, in transit over the network and in use by an application. Protection for one state does not replace protection for another.
+
+    ![Runtime observation during file decryption, memory use and buffer cleanup](/assets/images/thic-client-secret/01-verinin-yasam-dongusu.png)
+    _Figure 1: The application decrypts data to use it. A recording made at that moment may remain after the application clears its own buffer._
+
+    A DPAPI-protected file, for example, protects against direct reading without the appropriate Windows context. HTTPS protects traffic between client and server. A password decrypted for application use is at a different stage from those protections.
+
+    DPAPI user scope normally binds data to the relevant Windows identity. Machine scope does not provide the same separation between users. File permissions and any additional entropy also matter. The [CryptProtectData documentation](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata) explains these scopes.
+
+    This does not mean DPAPI is ineffective. We need to distinguish what it protects from the protection we expect while an application runs. It is normal for an application running as the same user to decrypt data encrypted in that user's context.
+
+    The problem arises when a design assumes that a secret used on an end user's computer will necessarily remain hidden from that user. A shared, broadly privileged SQL account used across installations is a good example.
+
+    ## What did we observe at runtime?
+
+    We considered two situations: searching for strings remaining in memory and observing data produced when a decryption call returns. The first shows regions accessible at scan time. The second examines the moment data becomes usable.
+
+    In our example, we monitored the return of `CryptUnprotectData`. When the application decrypted stored data, we could observe plaintext synthetic values shaped like SQL and PFX passwords. The observation point was where the application obtained the data for use.
+
+    This does not mean the encryption algorithm was broken. The application decrypts with its own authority, and observation happens at that point. Likewise, seeing plaintext inside a process before TLS does not demonstrate that network TLS was bypassed.
+
+    The memory scan used here had limited coverage. It searched the first 2 MB of each memory region for printable ASCII strings at least six characters long. UTF-16 strings, other representations and unscanned regions could be missed. Failure to find a password in one scan is therefore insufficient evidence that it never existed in the process.
+
+    Captured data must also be distinguished from the application's current memory. A decryption recording is a separate copy of the data at observation time. It can remain after the application clears its buffer. It proves visibility at that moment, not that the data still remains in the target process.
+
+    ## Laboratory setup
+
+    The examples consist of four C# desktop applications. The first two use the same synthetic data format; the third and fourth work together.
+
+    | Application | Demonstrated behavior |
+    |---|---|
+    | `01_ResidentSecrets.exe` | Decrypts data, retains the plaintext buffer in a field and does not clear it on logout. |
+    | `02_TransientSecrets.exe` | Decrypts during the operation and clears its own buffer in `finally`. |
+    | `03_ApiClient.exe` | Requests an operation using a user session; receives no SQL or PFX password. |
+    | `04_LabService.exe` | Performs the sample operation in its own process and returns only the result. |
+
+    The `LAB_SQL_` and `LAB_PFX_` prefixes help identify sample data in screenshots. Values following them are randomly generated at runtime. Complete passwords are not hardcoded in the source.
+
+    In the first two applications, “Demo verisini hazırla” prepares the data and writes it to a file using DPAPI. Preparation can itself generate an encryption event. Do not confuse preparation and decryption events when comparing the moment of use.
+
+    ## First example: leaving decrypted data in memory
+
+    After opening the file, the first application stores the returned byte array in a static field. It performs its sample operation with that array and retains the reference. The logout button does not clear the field.
+
+    Our recording showed encryption and decryption as separate entries. `CryptProtectData` belonged to preparation; `CryptUnprotectData` belonged to decrypting stored data. The latter exposed the synthetic `LAB_SQL_` and `LAB_PFX_` values.
+
+    ![Synthetic SQL and PFX passwords observed in cryptographic calls](/assets/images/thic-client-secret/02-resident-captured.png)
+    _Figure 2: Plaintext sample data is visible in the cryptographic call. This recording alone does not establish how long it remained in memory._
+
+    The code assigns plaintext to `retained`. Lines 24–32 in the screenshot contain the operation and logout handlers. The logout handler only prints a message; it does not touch `retained`. A separate cleanup button farther down runs only if the user clicks it.
+
+    ![Resident.cs retains plaintext in a static field and does not clear it on logout](/assets/images/thic-client-secret/03-resident-kod.png)
+    _Figure 3: `retained = vault.Open()` stores plaintext. Logging out through the interface does not clear the field._
+
+    <details markdown="1">
+    <summary>Show the relevant code as text</summary>
+
+    <!-- original-code:0 -->
+
+    </details>
+
+    Here, `vault.Open()` decrypts the file using DPAPI. `SimulateUse()` is only a lab function that processes the synthetic bytes. It opens no real connection.
+
+    A memory scan may also find the data, but its coverage means we cannot guarantee this on every run. We assess visibility at use time from the call recording and buffer retention separately from the source code.
+
+    This behavior should be improved. Removing unnecessary references and clearing owned buffers can reduce the chance of sensitive data appearing in a later memory dump or troubleshooting session. However, while the secret is still provided to the application, the second example's problem remains.
+
+    ## Second example: “we decrypt briefly and erase it”
+
+    The second application does not retain plaintext for long. It clears its byte array when the operation finishes, even after an error. Nevertheless, plaintext in the decryption call remains observable.
+
+    ![Plaintext sample data observed when CryptUnprotectData returns](/assets/images/thic-client-secret/04-transient-captured.png)
+    _Figure 4: The second capture also shows the synthetic SQL and PFX values in the decryption event. Later cleanup in the target does not affect a previously captured record._
+
+    In the source, `Open()` decrypts the data and `UseBriefly()` uses the returned array only for the operation. `Array.Clear` in `finally` clears the application's array. The call that exposes plaintext happens before this cleanup.
+
+    ![Open decrypts with DPAPI and UseBriefly clears the buffer in finally](/assets/images/thic-client-secret/05-transient-kod.png)
+    _Figure 5: `ProtectedData.Unprotect` opens the data; `Array.Clear` clears that array later. It does not undo observation at use time._
+
+    <details markdown="1">
+    <summary>Show the relevant code as text</summary>
+
+    <!-- original-code:1 -->
+
+    </details>
+
+    This version has better memory hygiene than the first. It contains no deliberate delay. The synthetic password is not displayed, logged or converted to a `string`.
+
+    The decryption call still occurs. By monitoring it before the operation started, we could observe data before the buffer was cleared. Trying to catch the right instant with a quick memory scan is not the same method as observing a call's return.
+
+    We also verified this in a separate test process using the same `SecretVault` code. The test recorded 194 bytes of plaintext sample data from `CryptUnprotectData`, including the SQL and PFX markers. We then confirmed that every byte in the application's owned array was zero after the operation returned. Raw password values were omitted from the validation report.
+
+    This measurement does not claim all memory copies were cleared. Its narrower conclusion is that observation at decryption time occurred even though the application's own buffer was cleared.
+
+    Thus, “we erased it afterward” does not answer “can we hide the shared database password from the end user?” Its lifetime in memory is shorter; its delivery to the client is unchanged.
+
+    ## Why is a SQL password a different risk?
+
+    Text a user is already authorized to view is not equivalent to a shared database password that can access every customer's data. In the latter case, broader privileges may exist beneath the restrictions imposed by the application's own screens.
+
+    A pentest assessment must establish what the account can access, its permission scope, the networks from which the database is reachable and whether the account is shared across installations. Not every SQL-shaped string represents a live account. A password screenshot alone does not prove complete database access or full privileges.
+
+    Where architecture allows, remove the shared SQL account from the desktop application. A user authenticates to an API using their own identity. On each request, the API checks the user's role, record ownership and organizational boundary. The database connection sits behind those checks. An API that sends the SQL password to the user merely moves the problem to another step.
+
+    Microsoft's [public-client explanation](https://learn.microsoft.com/en-us/entra/identity-platform/msal-client-applications) describes why applications distributed to desktops should not be assumed to store application secrets reliably.
+
+    Legacy systems requiring direct database access can consider user-specific Windows or database identities, narrow privileges and database-enforced access rules. If users are intended to query with their own authority, do not enforce this only inside the executable. Encrypting a shared privileged account does not establish that separation.
+
+    ## Third example: do not give the client the secret
+
+    The third application's source does not include the class that generates or decrypts secrets. The change is to stop delivering the password to the client. In production, this separation can be established through a service outside the user's control.
+
+    ![Client receives operation results from an API across a trust boundary while shared secrets remain server-side](/assets/images/thic-client-secret/06-sir-istemcide-yok-v2.png)
+    _Figure 6: In production, the client only requests an operation. The API checks authorization. Database access or signing happens server-side._
+
+    The lab client obtains a session and requests its own report. Its code contains no call to retrieve a SQL or PFX password. It sends the report request with the user session.
+
+    ![Client.cs requests a report using a session and receives no shared service password](/assets/images/thic-client-secret/07-istemci-kod.png)
+    _Figure 7: The client requests a report using `Protocol.Request`; it does not decrypt SQL or PFX passwords._
+
+    <details markdown="1">
+    <summary>Show the client's report request as text</summary>
+
+    <!-- original-code:2 -->
+
+    </details>
+
+    The service checks the verified Windows identity, session, operation name and requested sample record. It then performs the sample operation in its own process. The response contains only a fixed sample report. No operation returning a password is defined.
+
+    ![Service.cs returns only the report after checking session lifetime, identity, operation and record](/assets/images/thic-client-secret/08-servis-kod.png)
+    _Figure 8: Checks run service-side. The sample secret is used only in the service operation and is not added to the report response._
+
+    The lab also has a “Diğer raporu iste” button for requesting another report. The service rejecting that request differs from hiding a button in the interface. Logout removes the session server-side, and a subsequent request with the old token is rejected. Sessions also have a two-minute lifetime.
+
+    For convenient execution, this lab runs the service as a separate local process and uses a named pipe. This illustrates what is delivered to the client. A local service running as the same user does not create a remote-server boundary against the machine's administrator or every process under that account. The lab protocol is not a production-ready API.
+
+    A real solution runs the service outside the user's control. It requires user authentication, a trusted server connection and authorization on every request. [RFC 8252](https://www.rfc-editor.org/rfc/rfc8252.html) describes system-browser and PKCE flows for native applications. PKCE does not make a compromised desktop process trustworthy or prevent all token access.
+
+    The client is not entirely free of sensitive data: its user session and accessible report remain present. The benefit is that the end-user process no longer knows the shared SQL or PFX password. Session scope, lifetime and revocation need separate management. In real JWT systems, logging out or removing a refresh token does not automatically invalidate every issued access token immediately. The API's behavior must be explicitly designed.
+
+    ## What changes for certificate passwords?
+
+    We must specify what “certificate password” means. A certificate's public part is not secret. The PFX password, the package's private key and authority to perform operations with that key are different things.
+
+    If an application imports a password-protected PFX on startup, there is a point where the password is usable. Moving it to an encrypted settings file or decrypting it only during import does not remove that point. The lab's PFX field represents only this data lifecycle; it is not an actual PFX-import test.
+
+    For a shared organizational signing key, consider retaining it on a server or in an HSM rather than distributing it to clients. The server should sign only permitted document and operation types and check the requester's authority. A generic endpoint that signs any submitted data may authorize the wrong transactions even if the key never leaves.
+
+    If the operation must happen on the device, prefer a device- or user-specific non-exportable key, ideally generated in a TPM. Instead of carrying a PFX password, the application asks the provider to use the key. Microsoft's [TPM documentation](https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/tpm-fundamentals) explains how the private portion of non-migratable TPM keys is kept within the hardware.
+
+    Non-exportability does not prevent misuse. Compromising a process authorized to use the key can enable abuse of permitted operations. Key access permissions, purpose, user confirmation and server-side acceptance rules remain important. Marking a software key “non-exportable” is not equivalent to generating it in a TPM.
+
+    ## Can an application detect that it is being inspected?
+
+    Alongside removing shared secrets from the client, evaluating signs of runtime inspection or modification can provide another defensive layer. Traces of components injected by tools such as Frida, unexpected modules and code-integrity changes may be relevant. The aim is to detect suspicious conditions before starting a sensitive operation.
+
+    Debugger detection and Frida detection are not the same thing. Windows `IsDebuggerPresent` reports whether the calling process runs under a user-mode debugger. A negative result does not prove that runtime inspection is absent. Microsoft's [documentation](https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-isdebuggerpresent) defines its scope.
+
+    Consider multiple signals rather than checking only one tool name: expected module origins, critical-code integrity and debugger state. Antivirus, accessibility and performance-monitoring software may also interact with the application. Treating every unexpected component as an attack can cause false positives.
+
+    Design the response too. Options include declining a risky operation, requesting additional authentication or creating a security event without sensitive data. Prefer a proportionate response over abrupt termination that loses unsaved work. The server should not treat a client's “no inspection detected” assertion as sufficient proof of trust.
+
+    These checks themselves run inside a user-controlled process and can be modified or disabled. Detection can increase analysis costs but cannot guarantee secrecy of a shared SQL password used on the client. OWASP's mobile [MAS-R approach](https://mas.owasp.org/Profiles/MAS-R/) likewise treats such measures as complementary to fundamental security controls. Keep the same distinction for desktop applications.
+
+    This lab compares visibility at use time. Frida detection and integrity checks were not added to these examples. A separate article will examine detected conditions and responses.
+
+    ## Which measure addresses which problem?
+
+    | Measure | Protection provided | What it does not solve |
+    |---|---|---|
+    | DPAPI and correct file permissions | Protection of stored data | Observation when the application decrypts and uses it |
+    | Short memory lifetime and buffer clearing | Fewer unnecessary remnants | Copies already captured during use |
+    | Logging and dump policies | Less spread of sensitive data to other files | Use of the secret on the client |
+    | Frida/debugger signals and integrity checks | Detecting runtime interference and increasing analysis costs | Guaranteed confidentiality of a client-used secret |
+    | Shared SQL account kept in a remote service | No distribution of the shared secret to clients | API authorization bugs and service security |
+    | User-specific, limited session | Restricting the impact of a session | Abuse within that valid session's own authority |
+    | TPM- or HSM-backed key | Preventing private-key export when configured appropriately | Misuse of authorized key operations |
+
+    Memory cleanup should still happen. The objection is to presenting it as a complete solution. In .NET, setting a `string` reference to `null` does not zero every copy. Converting a string literal with `ToCharArray()` and clearing the array does not remove the original string either.
+
+    Because this lab targets .NET Framework, it clears its owned array with `Array.Clear`. Appropriate modern .NET versions offer [CryptographicOperations.ZeroMemory](https://learn.microsoft.com/dotnet/api/system.security.cryptography.cryptographicoperations.zeromemory) for cryptographic buffers. Regardless of the API, account for copies outside the application's control and previously observed data. `SecureString` is not a general solution either; Microsoft [does not recommend it for new development](https://learn.microsoft.com/en-us/dotnet/api/system.security.securestring?view=net-10.0).
+
+    ## How should the pentest finding be written?
+
+    “A password was found in memory” is an observation. A useful finding explains the affected trust boundary. Distributing a shared service account, leaving unnecessary remnants after logout and keeping a supposedly ended session valid server-side may be separate issues.
+
+    Record the data type, the application operation during which it was visible and the initial privileges required to observe it. Do not portray an administrator-level observation as standard-user access. Conversely, a standard user learning broader service credentials from their own client should not be dismissed merely because it is their computer.
+
+    For SQL credentials, assess permission and network scope. For a PFX password, establish access to the package and the private key's intended use. For a token, assess the user, scope and validity period. Severity follows the impact these conditions create, not merely the text that was visible.
+
+    A screenshot may need only a masked example, operation name, timestamp and target PID rather than a complete password. The lab values are synthetic. In real assessments, saved sessions and exported files may themselves contain sensitive data. Evidence collection should not create another leak.
+
+    In this lab, the second example cleared its buffer, yet the moment of use remained observable. The third example changed something other than cleanup speed: the client never received the shared service password. That is the central design question: do we actually need to use this secret on the end user's computer?
+
+    ## Next article
+
+    The next article will be **“Can an Application Detect Inspection? Frida Detection and Runtime Integrity.”** We will examine what debugger checks establish, signals of runtime interference and how to respond without unnecessary false alarms.
+
+2026-09-20-Thick-Client-Pipeline-Guvenligi:
+  lang: en
+  title: Thick Client Pipeline Security
+  description: 'Detecting, validating and demonstrating weak Named Pipe permissions in Windows thick clients, with hardening methods for developers.'
+  body: |
+    Hiding administrative options in a desktop application's interface does not mean its background service enforces the same privilege boundary. If the interface runs as a standard user while the service runs as administrator or `SYSTEM`, their communication channel becomes a trust boundary. When that boundary is implemented incorrectly, a low-privileged user can make the service perform operations the user could not perform directly.
+
+    This article examines Named Pipe communication in Windows thick clients from a pentester's perspective. We will distinguish finding a pipe name from proving a vulnerability, show how weak DACLs and application authorization failures combine, demonstrate that chain in our controlled laboratory and explain how developers can strengthen the same boundary.
+
+    > **Terminology:** The word “pipeline” in the title refers here to Windows **Named Pipes** communication. The technical term is named pipe; CI/CD build and deployment pipelines are outside this article's scope.
+
+    ## What is a pipeline?
+
+    ### Windows Named Pipes and IPC
+
+    IPC is the general name for mechanisms that allow processes on the same or different systems to exchange data. A named pipe is a named Windows object providing one-way or duplex communication between a server process and one or more clients. The server does not have to be another computer: a Windows service on the same machine can act as the pipe server. Microsoft's [Named Pipes documentation](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipes) describes the behavior.
+
+    An example local pipe path is:
+
+    <!-- original-code:0 -->
+
+    This name only identifies a communication endpoint. It does not establish that the connecting process is trusted, its claimed role is correct or it is authorized for the requested operation.
+
+    ### Why would a thick client use a named pipe?
+
+    An ERP, accounting or administration application may run its interface, updater, print service and background task manager in separate processes. Long-running operations then avoid blocking the interface, services can be managed independently and only the component requiring extra privileges needs to run elevated.
+
+    This architecture introduces a trust boundary. When the client runs as a standard user and the service has higher privileges, the service must answer each of these questions:
+
+    1. Who can connect to this channel?
+    2. What is the connecting client's verified identity?
+    3. May this identity perform the requested operation?
+    4. Is it also authorized for the requested resource?
+
+    ![Trust boundary between a thick client, named pipe, Windows service and protected resource](/assets/images/thick-client-pipeline/01-ipc-mimarisi.png)
+    _Figure 1 — The named pipe between the interface and the privileged service is one of the application's security boundaries._
+
+    ## Why can it create a vulnerability?
+
+    Using a named pipe is not inherently a vulnerability. Risk depends on who can access the channel, which functions it exposes and the account that performs them. Connecting to a pipe and causing an unauthorized service operation are different findings.
+
+    | Weakness | Additional condition | Possible result |
+    |---|---|---|
+    | Overly broad DACL | The pipe exposes sensitive data or functions | Unauthorized access or operation requests |
+    | Trusting a client-supplied role | The service does not independently verify it | Application authorization bypass |
+    | Processing input with service privileges | The service can access a protected resource | Crossing a local privilege boundary |
+    | General-purpose file or command operations | The user controls targets or parameters | File modification or code execution |
+    | No message-size or schema validation | The handler cannot safely reject malformed input | Service disruption or unintended operations |
+    | Overprivileged database account | Requests use a shared privileged account | Excessive data access or modification |
+
+    Windows compares a connecting client's access token against the pipe object's DACL. Permission to connect does not authorize every application operation. The DACL is the first gate; authentication, operation authorization and resource authorization are separate decisions.
+
+    ![Sequence of security decisions for a named pipe](/assets/images/thick-client-pipeline/02-yetki-kontrolleri.png)
+    _Figure 2 — Each check is independent; failure of any one should stop the operation._
+
+    A privileged service alone does not establish privilege escalation. We must demonstrate that the low-privileged identity can use it to perform an operation that identity cannot perform directly. Initial privileges, the service account, the modified resource and the result must belong to the same evidence chain.
+
+    ## How and when does a pipeline become unsafe?
+
+    ### Assuming “only our executable connects to this pipe”
+
+    A filename, signature, PID or role displayed in an interface does not independently establish identity. If a low-privileged user can connect to the pipe, they can reproduce legitimate messages with their own client. If the service trusts a decision like the following, the client effectively chooses its own role:
+
+    <!-- original-code:1 -->
+
+    The attacker does not change a Windows token here. They change only the JSON `role` field. If the service accepts that claim without verification, an administrative function hidden in the interface can be called directly.
+
+    ### Broadening the DACL to resolve connection problems
+
+    The DACL determines which SIDs can access the pipe object and with which rights. Granting write access or full control to broad groups such as `Everyone`, `Authenticated Users` or `Users` increases the privileged service's attack surface.
+
+    Generic write rights require particular care for named pipes. `FILE_APPEND_DATA` and `FILE_CREATE_PIPE_INSTANCE` share the same bit value on Windows; Microsoft therefore recommends granting the specific required rights rather than generic write. See [Named Pipe Security and Access Rights](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights).
+
+    Distinguish these three concepts:
+
+    - **NULL DACL:** Grants everyone access.
+    - **Empty DACL:** Contains no allow entries and denies access.
+    - **No custom security descriptor:** Uses the Windows default descriptor; this does not automatically mean a NULL DACL.
+
+    The default descriptor is not appropriate for every architecture either. Define the security policy, intended client accounts and required rights explicitly.
+
+    ### Treating connection access as operation authorization
+
+    Being allowed to view service status does not mean a user should be allowed to change settings. A single pipe may expose both public status queries and privileged administrative operations. Checking only at connection time is therefore insufficient: the service must authorize the operation and resource for every message.
+
+    ### Impersonation failures
+
+    `RunAsClient` and `ImpersonateNamedPipeClient` let a server perform checks in the client's security context. If impersonation cannot be established, the operation must fail closed rather than continue with the service account's privileges. Restore the context correctly and check every error return. Native API behavior is described in [ImpersonateNamedPipeClient](https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-impersonatenamedpipeclient).
+
+    ### Confusing SQL connectivity with pipe security
+
+    Two architectures may connect a thick client and SQL Server:
+
+    <!-- original-code:2 -->
+
+    In model A, the pipe transports the SQL Server connection. SQL Server creates the pipe; Windows access and SQL login, user and role permissions are separate layers. The important risks include shared SQL credentials embedded in the connection string, overprivileged accounts and authorization enforced only in the interface.
+
+    In model B, an intermediary service opens the SQL connection. The questions become which queries or business operations the pipe's caller can initiate and which database account the service uses. In either model, “Named Pipes is enabled” does not independently demonstrate a SQL authorization bypass.
+
+    ## How does a pentester detect and validate the vulnerability?
+
+    The assessment has four stages: find the endpoint, verify access as the correct user, understand the protocol and demonstrate measurable impact.
+
+    ### 1. Record the test context
+
+    Do not interpret DACL results without recording the account and integrity level of the client, service and analysis tool. An administrator-level analysis tool connecting successfully does not demonstrate that a standard user can connect.
+
+    In this laboratory:
+
+    - `YaziPipeLab.Client.exe` ran as a standard user.
+    - `YaziPipeLab.Server.exe` ran in a UAC-elevated administrator context.
+    - `YaziPipeLab.AdminPipe` was a duplex local channel.
+    - `%ProgramFiles%\YaziPipeLab\protected-output.txt` was a synthetic protected resource.
+
+    The server accepts neither arbitrary commands nor arbitrary file paths. We demonstrated impact only on the lab's fixed file and sample secret.
+
+    ### 2. Find the pipe and associate it with the target process
+
+    PowerShell can list existing pipe names:
+
+    <!-- original-code:3 -->
+
+    In a real assessment, that list is only a starting point. Compare results with the application open and closed; filter the target process and `\Device\NamedPipe\` paths in Process Monitor; verify handle ownership with Process Explorer or `handle.exe`. In .NET applications, look for `NamedPipeClientStream` and `NamedPipeServerStream`; in native applications, examine `CreateNamedPipeW`, `ConnectNamedPipe`, `ReadFile` and `WriteFile`.
+
+    ### 3. Assess both the DACL and actual access
+
+    [SafiyeMonitor](https://github.com/ErenCanOzmn/SafiyeMonitor) found the lab pipe accessible. Its DACL analysis showed owner `BUILTIN\Administrators` and the risky ACE `Everyone (0x001F019F)`. In the SDDL output, `WD` represents the Everyone SID.
+
+    ![Accessible pipe and weak DACL identified in SafiyeMonitor](/assets/images/thick-client-pipeline/03-safiye-zayif-dacl.png)
+    _Figure 3 — SafiyeMonitor flags the broad rights granted to Everyone as a candidate finding._
+
+    Tool output alone does not establish final impact. Reading the same DACL from a standard-user PowerShell session independently confirmed the `Everyone / FullControl / Allow` entry.
+
+    ![PowerShell confirmation of the Everyone FullControl ACE](/assets/images/thick-client-pipeline/04-powershell-dacl-dogrulama.png)
+    _Figure 4 — An independent PowerShell check of the same security descriptor._
+
+    These images demonstrate that the low-privileged user can reach the channel and that its descriptor is overly broad. Local privilege escalation is not yet established: that requires a protected operation through the service.
+
+    ### Manual verification without SafiyeMonitor
+
+    A pentester need not depend on a particular tool. PowerShell can establish a controlled client connection:
+
+    <!-- original-code:4 -->
+
+    A successful connection proves only that the pipe instance is accessible. Sensitive operations require understanding the protocol. Observe harmless requests from the legitimate client, inspect .NET serialization code or trace `ReadFile`/`WriteFile` in a debugger. Use synthetic requests in an authorized lab rather than sending arbitrary data to an unfamiliar production protocol.
+
+    The lab protocol is a simple JSON message terminated by a newline:
+
+    <!-- original-code:5 -->
+
+    The service incorrectly treats the `role` field as verified identity. A standard user first attempted to write directly to the protected file and was denied by Windows access control. Sending `role=admin` from the same session caused the service to return the sample secret.
+
+    ![Standard user's direct write denied, followed by sample-secret access using role admin](/assets/images/thick-client-pipeline/05-manuel-somuru-kaniti.png)
+    _Figure 5 — The same standard user cannot directly access the protected resource but can call a privileged service function using a client-controlled role._
+
+    ### 4. Demonstrate privileged impact
+
+    We used a second request to distinguish an application role bypass from an operating system impact:
+
+    <!-- original-code:6 -->
+
+    While the standard user could not directly write to the lab file under `%ProgramFiles%`, the elevated server modified that file. The SafiyeMonitor request, successful server response and Notepad result were captured together.
+
+    ![Privileged file write through SafiyeMonitor and the resulting file](/assets/images/thick-client-pipeline/06-safiye-ayricalikli-dosya-yazma.png)
+    _Figure 6 — Data chosen by the low-privileged client was written to the protected lab file by the privileged service._
+
+    This demonstrates a measurable crossing of a local privilege boundary. However, because the lab accepts no arbitrary paths or commands, the result cannot be described as obtaining an administrator shell. The proven impact is that a standard user can modify a specific protected OS resource through an elevated service.
+
+    ### The evidence ladder
+
+    | Observation | What it proves | What it does not prove on its own |
+    |---|---|---|
+    | A pipe name is found | An IPC endpoint exists | That it belongs to the target |
+    | The target process opens the pipe | The process and pipe are associated | That a standard user can access it |
+    | A standard user connects | Connection access exists | Authorization for sensitive operations |
+    | A message and response are recorded | The protocol can be used | That a privilege boundary was crossed |
+    | A forged role invokes a protected function | Application authorization can be bypassed | OS-level privilege escalation |
+    | The service modifies a protected OS resource | Local privilege escalation impact exists | Arbitrary code execution |
+
+    This distinction directly affects report quality. “The pipe is accessible” identifies a potential attack surface; “a low-privileged user modified a protected resource using service privileges” establishes impact.
+
+    ## Pipeline hardening
+
+    A lasting fix is not a single `if` or DACL change. Correct both connection access and application-level authorization.
+
+    ### Define the pipe DACL explicitly
+
+    The vulnerable lab version created the pipe using this logic:
+
+    <!-- original-code:7 -->
+
+    In the hardened version, access was restricted to the `Administrators` and `SYSTEM` SIDs actually required by the lab architecture. Do not copy those SIDs directly into a general product: select the minimum rights needed for the product's service account, client group and operation model.
+
+    For processes running as the same user at the same elevation level, .NET's `PipeOptions.CurrentUserOnly` can help. Microsoft documents that on Windows it checks both the account and elevation level. Architectures with services running under different accounts need an explicit `PipeSecurity` policy. Also, passing `CurrentUserOnly` to `NamedPipeServerStreamAcl.Create` causes a custom `PipeSecurity` argument to be ignored; do not assume the mechanisms combine. See [PipeOptions](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.pipeoptions?view=net-10.0) and [NamedPipeServerStreamAcl.Create](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.namedpipeserverstreamacl.create?view=net-10.0).
+
+    ### Obtain the role from the connection, not the message
+
+    Never use a client-supplied `role`, `isAdmin` or username as the authority for an access decision. Obtain the real Windows identity through the connection and evaluate it against server-side policy:
+
+    <!-- original-code:8 -->
+
+    If identity cannot be established or impersonation fails, reject the operation rather than continue as the service account. Even an identity that passes connection access still needs separate operation and resource checks.
+
+    ![Comparison of vulnerable and hardened Named Pipe code](/assets/images/thick-client-pipeline/07-kod-hardening-karsilastirmasi.png)
+    _Figure 7 — Everyone/FullControl and a client-controlled role on the left; a narrowed DACL and the real Windows token on the right._
+
+    ### Limit what the service can do
+
+    Run the service with only the operating system permissions its function requires. Do not turn the message protocol into a general-purpose interface accepting arbitrary commands, file paths or SQL. Allowlist operation names and validate resource identifiers, message sizes and field types.
+
+    Reject remote clients separately when only local use is intended. For services using native APIs, consider `PIPE_REJECT_REMOTE_CLIENTS` according to the architecture. Protecting the first pipe instance does not replace client and server authentication.
+
+    ### Harden SQL separately
+
+    A secure pipe does not eliminate SQL injection if queries concatenate user input:
+
+    <!-- original-code:9 -->
+
+    Use a parameterized query:
+
+    <!-- original-code:10 -->
+
+    Parameters prevent input from being interpreted as SQL code; they do not authorize a user to access a particular report. Check resource authorization separately and grant the database account access only to the necessary tables and operations. Prefer server-side identity and secret management over carrying a shared administrator password in the client executable. See Microsoft's [ADO.NET parameter documentation](https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/configuring-parameters-and-parameter-data-types).
+
+    ### Retest the fix
+
+    Hardening was retested in two contexts. Because the SafiyeMonitor backend ran as administrator, it could connect to the pipe restricted to `Administrators`. Nevertheless, the same `writeProtected` request now returned `denied` at the application layer. The Everyone warning visible in the screenshot is a previous scan retained from the vulnerable stage, not a post-hardening DACL measurement.
+
+    ![Privileged operation rejected by the service in hardened mode](/assets/images/thick-client-pipeline/08-hardened-islem-reddi-safiye.png)
+    _Figure 8 — Even an elevated analysis tool that can connect cannot force a privileged operation with the client-controlled role=admin field._
+
+    We then repeated the test using the same standard user and PowerShell connection code. Because the pipe DACL no longer granted that token access, `Connect` failed with `UnauthorizedAccessException`.
+
+    ![Standard-user connection rejected by the hardened pipe](/assets/images/thick-client-pipeline/09-hardened-erisim-reddi.png)
+    _Figure 9 — The same test user and client code cannot connect after the DACL is hardened._
+
+    Rejecting the attack request is not sufficient to consider a fix successful. Verify legitimate use too:
+
+    | Test | Expected result |
+    |---|---|
+    | Authorized identity, permitted operation and resource | Operation completes |
+    | Unauthorized identity | Rejected at connection or operation layer |
+    | Identity can connect but operation is not permitted | Rejected by the service |
+    | Identity cannot be established | Rejected before operation begins |
+    | Invalid or oversized message | Rejected while preserving resource limits |
+    | Reconnection or role change | Previous authorization decisions do not carry over |
+    | Normal application workflow | Works within the defined data boundaries |
+
+    ## Conclusion
+
+    The central question in a named pipe assessment is not whether the pipe can be found: **Which identity can perform which operation, using whose privileges?**
+
+    In our lab, the `Everyone: FullControl` DACL let a low-privileged user reach the channel. Trust in client-supplied `role=admin` removed application authorization. The elevated service's modification of a protected file turned these errors into measurable local privilege escalation impact.
+
+    A sound fix rebuilds the same chain in reverse: restrict pipe access to the minimum SIDs and rights, obtain identity from the connection's Windows token, authorize every operation and resource on the server, reduce service privileges and retest as the same low-privileged user.
+
+    A strong pentest finding is more than a screenshot of a weak ACE. Showing initial privileges, access control, the protocol request, the service decision, the protected-resource result and the post-hardening rejection together makes both the impact and the fix clear.
+
+2026-09-21-Thick-Client-DLL-Hijacking:
+  lang: en
+  title: 'Thick Client Security: DLL Hijacking'
+  description: 'How does the Windows DLL search order work? DLL hijacking, load records and secure DLL loading methods demonstrated through a sample application.'
+  body: |
+    A desktop application uses various libraries alongside its executable. If one of those libraries loads from an unexpected location, the application may execute code other than what its developer intended. When examining DLL loading, we therefore ask two questions: **Which DLL is being loaded, and who can modify that file?**
+
+    First, we will look at the relationship between an application and its DLLs and at the Windows DLL search order. Then we will examine DLL hijacking through a sample application's load records and discuss measures developers can take.
+
+    ## How does an application use a DLL?
+
+    Imagine a reporting application whose user interface lives in `RaporApp.exe` and whose report-formatting functions live in `RaporMotoru.dll`. When a user requests a report, the application can call the library's functions to obtain the result.
+
+    Windows maps a native DLL into the application's virtual address space. The application calls the functions exported by the DLL, passes parameters and uses the return values. The DLL's code runs in the context of the calling process and thread.
+
+    An application can link to a DLL in two ways. With **load-time linking**, required dependencies are resolved when the application starts. With **run-time linking**, the application loads the library when needed using `LoadLibrary` or `LoadLibraryEx`, then obtains a function's address with `GetProcAddress`. Microsoft explains both methods in its [DLL overview](https://learn.microsoft.com/en-us/windows/win32/dlls/about-dynamic-link-libraries).
+
+    ![Loading a DLL into an application process, calling a function and returning a value](/assets/images/thick-client-dll-hijacking/01-uygulama-dll-iliskisi.png)
+    _Figure 1: An application calls functions in a DLL loaded into its own address space._
+
+    This article examines native Windows DLL loading. .NET assembly resolution follows different rules. A .NET application's native dependencies should be assessed separately.
+
+    ## What is DLL hijacking?
+
+    DLL hijacking occurs when an application loads an attacker-controlled library with the same name as the library it expects. Omitting a full path, searching more directories than necessary or allowing a standard user to write to a DLL's location can lead to this issue.
+
+    In our reporting example, the developer expects the application to use the distributed `RaporMotoru.dll`. A matching filename does not guarantee that. The loaded file must come from a location the application trusts and protects.
+
+    A loaded DLL can access files, network resources and other operating system objects in the application's security context. For an application running as a standard user, the impact is code execution with that user's privileges. If the application runs with higher privileges and a low-privileged user can modify the loaded DLL, local privilege escalation may also be possible.
+
+    DLL injection and DLL hijacking are often confused. Injection aims to make another process load code. In this hijacking example, the application selects the wrong DLL during its own load operation.
+
+    ## DLL search order: where does Windows look?
+
+    The DLL search order is the sequence Windows follows to find a DLL when only its module name is provided. The diagram simplifies the directory search. For the detailed explanation, we assume **unpackaged applications using the standard search behavior with Safe DLL Search Mode enabled**. The loading method and application settings can change this order.
+
+    ![Simplified DLL search through application, system and other directories](/assets/images/thick-client-dll-hijacking/02-dll-search-order.png)
+    _Figure 2: The general logic of DLL searching. The detailed order is explained below._
+
+    Before searching directories, the loader checks mechanisms such as DLL redirection, API sets, side-by-side (SxS) manifest redirection, already-loaded modules and KnownDLLs. On Windows 11 version 21H2 and later, the package dependency graph also appears in this sequence.
+
+    It then considers the application directory, system directory, 16-bit system directory, Windows directory, current working directory and directories in `PATH`. The **application directory** contains the executable. The **current working directory** is the working location the process currently uses. These paths do not have to be the same.
+
+    Safe DLL Search Mode moves the working directory later in the search order but does not remove it. Packaged applications, manifests, `SetDllDirectory`, `AddDllDirectory` and `LOAD_LIBRARY_SEARCH_*` flags can change the behavior. Loading the main DLL by full path does not automatically give its dependent DLLs the same protection. Microsoft's [DLL search order documentation](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order) provides the details.
+
+    Knowing the search order makes load records easier to interpret. During an assessment, we still check the actual path from which the DLL loaded. Developers should restrict the locations from which an application can load code.
+
+    ## When does DLL loading become unsafe?
+
+    A call that uses only a DLL name is not enough to establish a vulnerability. We also need to examine the permissions of the searched locations and identify the file the application actually loads.
+
+    | Condition | Question to investigate | Possible result |
+    |---|---|---|
+    | A DLL is requested without a full path | Which locations does the loader consider? | A different file with the same name may be selected |
+    | A searched location is writable | Can a standard user add or modify the DLL? | The file's source may become attacker-controlled |
+    | The application actually loads that DLL | From which full path did the successful load occur? | The controlled file may enter the process |
+    | The DLL's code runs inside the process | Is there output demonstrating execution? | Code execution with the application's privileges |
+    | The application has higher privileges | Are the initial and resulting identities actually different? | Local privilege escalation if the conditions permit it |
+
+    A `NAME NOT FOUND` record shows that a particular file access failed. The application may later load the expected DLL from another location. When we find a writable directory, we also check whether the application selects the file there and whether its code executes.
+
+    ## An example of secure DLL loading
+
+    First, consider a secure load in `DllLoadingDemo.exe`. The application loaded `dbghelp.dll` from the Windows system directory using a full path and `LOAD_LIBRARY_SEARCH_SYSTEM32`.
+
+    The SafiyeMonitor record showed a successful call and a DLL originating from `C:\Windows\System32\dbghelp.dll`.
+
+    ![dbghelp.dll loaded from System32 in SafiyeMonitor](/assets/images/thick-client-dll-hijacking/03-safiye-guvenli-dll-yukleme.png)
+    _Figure 3: The SafiyeMonitor record shows the DLL name, API, operation result and full load path._
+
+    The file's location in the system directory is also visible in Windows Explorer.
+
+    ![dbghelp.dll in the Windows System32 directory](/assets/images/thick-client-dll-hijacking/04-system32-dbghelp-dll.png)
+    _Figure 4: The dbghelp.dll file from the load record, located in System32._
+
+    Here, the record and the file's location agree. The application loads the expected DLL from the system directory.
+
+    ## DLL hijacking in the laboratory
+
+    We used a lab consisting of `VulnerableLoader.exe` and `ReportPlugin.dll` to observe the loading behavior.
+
+    - `VulnerableLoader.exe` loaded the DLL using only the name `ReportPlugin.dll`.
+    - `ReportPlugin.dll` opened a PowerShell window and ran `whoami`.
+    - The executable and DLL were in the same temporary lab directory, writable by the standard user.
+    - The application ran with standard-user privileges.
+
+    In this example, the DLL's code ran with the privileges of the standard user who launched the application.
+
+    ### The vulnerable call
+
+    The sample load call was:
+
+    <!-- original-code:0 -->
+
+    The call supplies only a filename. The loader determines the source using the search rules that apply to the process. In the lab, placing a DLL with that name in the executable's writable directory caused the application to select it.
+
+    ![Vulnerable call loading ReportPlugin without a full path](/assets/images/thick-client-dll-hijacking/05-zafiyetli-loadlibrary-cagrisi.png)
+    _Figure 5: The LoadLibraryW call does not specify the DLL's full path._
+
+    ### What the sample DLL contains
+
+    The DLL's exported `RunLab` function opened a new PowerShell window. Profile loading was disabled, and only the `whoami` command ran.
+
+    ![Source code of the sample ReportPlugin DLL](/assets/images/thick-client-dll-hijacking/06-payload-kaynak-kodu.png)
+    _Figure 6: The sample DLL runs whoami in a PowerShell window._
+
+    ### Verifying the loaded DLL
+
+    SafiyeMonitor showed that `LoadLibraryW` succeeded. The record demonstrates that `ReportPlugin.dll` loaded into the process.
+
+    ![ReportPlugin DLL load record in SafiyeMonitor](/assets/images/thick-client-dll-hijacking/07-safiye-reportplugin-yukleme.png)
+    _Figure 7: A successful load record for ReportPlugin.dll._
+
+    ### Observing code execution
+
+    Calling the DLL function opened PowerShell and produced `whoami` output. The reported user was the same standard user who launched the application.
+
+    ![PowerShell running in the standard user's context with whoami output](/assets/images/thick-client-dll-hijacking/08-whoami-kod-calistirma.png)
+    _Figure 8: The user identity in the PowerShell window opened by the DLL._
+
+    This result demonstrates execution of the DLL's code. Because the application ran with standard-user privileges, this test did not demonstrate privilege escalation.
+
+    ### What do the records establish?
+
+    | Observation | What it proves | What it does not prove on its own |
+    |---|---|---|
+    | A DLL name appears in a call | The application tries to resolve that module | That the file loaded |
+    | A writable directory is found | A standard user can place a file there | That the application will select it |
+    | A successful load is recorded | A particular DLL loaded into the process | That its function executed |
+    | `whoami` output is obtained | The DLL's contents ran in the application's context | That privilege escalation occurred |
+    | Initial and resulting identities differ | A trust boundary may have been crossed | That DLL loading caused the difference |
+
+    A report should explain the load record, execution evidence and any privilege change separately.
+
+    ## What should a security assessment examine?
+
+    ### Test environment and application privileges
+
+    Record the application version, executable path, user identity, integrity level, process architecture and tested function. An analysis tool running as administrator does not mean the application under assessment has the same privileges.
+
+    ### DLL load records
+
+    [Process Monitor](https://learn.microsoft.com/en-us/sysinternals/downloads/procmon), or an equivalent runtime observation tool, can track DLL activity for the target process. `CreateFile` indicates a file access attempt; a successful `Load Image` indicates that a module was mapped into the process.
+
+    Looking only at failure records can be misleading. Examine subsequent successful loads and full paths for the same DLL name. If a process briefly loads and unloads a DLL, a point-in-time module list may miss it. A chronological event log is more useful in that case.
+
+    ### File and directory permissions
+
+    Once the DLL's full path is identified, inspect the file's permissions and those of its parent directories. Assess the standard user's rights to create, modify, delete and rename files alongside group memberships and inherited permissions.
+
+    Installation, plugin, update, temporary and working directories may have different permissions. Check permissions using the tested user's access token.
+
+    ## How can DLL hijacking be prevented?
+
+    ### Construct the full path from a trusted source
+
+    The sample call used only the module name:
+
+    <!-- original-code:1 -->
+
+    We can construct a full path from protected installation information and restrict dependency searches to the directories actually required:
+
+    <!-- original-code:2 -->
+
+    `LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR` adds the main DLL's directory to the search only for its dependencies and requires a full path. `LOAD_LIBRARY_SEARCH_SYSTEM32` covers the system directory. This call excludes the working directory and general `PATH` directories from that load's dependency search. The flags are documented in [LoadLibraryExW](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexw).
+
+    Do not derive this path from user input, the current working directory or user-modifiable configuration. If loading fails, the application should not continue searching other locations of uncertain trust.
+
+    ### Narrow the process-wide search scope
+
+    When multiple components load DLLs, `SetDefaultDllDirectories` can establish a process-wide default search scope. Add required extra directories explicitly using `AddDllDirectory`. The word user in `LOAD_LIBRARY_SEARCH_USER_DIRS` refers to directories the application explicitly adds through these APIs, not every directory in a user's profile.
+
+    `LOAD_LIBRARY_SEARCH_DEFAULT_DIRS` includes the application directory, system directory and directories added through those APIs. Microsoft recommends restricting the default search to this scope. See [SetDefaultDllDirectories](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-setdefaultdlldirectories).
+
+    ### Separate code directories from data directories
+
+    Keep executables and DLLs in installation directories that standard users cannot modify. Write reports, logs, caches and user settings to separate data directories. Granting write access to an entire application directory to fix connection or update problems may also let users modify executable code.
+
+    Installers and updaters must preserve these permissions. Move files securely from temporary locations into the installation directory during updates, then recheck executable components and directory permissions.
+
+    ### Fail safely when a dependency is missing
+
+    If a required DLL is unavailable in its trusted location, stop the relevant function with a clear error. If an optional component is missing, disable only its dependent feature. The application should not search the working directory or arbitrary `PATH` locations for an alternative copy just to continue running.
+
+    ## Verifying the fix
+
+    Compare the versions before and after the fix using the same user and functional workflow. Both versions' records should show the process identity and full load path.
+
+    | Check | Expected behavior |
+    |---|---|
+    | Normal application use | The function completes as expected |
+    | Loaded module path | Matches the protected, designated location |
+    | Code-directory permissions | The standard user cannot modify it |
+    | Missing required dependency | The relevant function stops with a clear error |
+    | Missing optional dependency | Only the related feature is disabled |
+    | State after an update | Loading policy and file permissions remain intact |
+
+    The final check should confirm that the expected DLL loads from its protected location and normal functions still work. Load records should also demonstrate that the previously used writable location is no longer in the search scope.

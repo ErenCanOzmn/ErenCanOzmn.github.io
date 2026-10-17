@@ -1,0 +1,23 @@
+/* Monitor and keyboard styling. The cat uses its original intact sprite. */
+.mascot-stage{--switch-light:#99e2bd}
+.mascot-terminal{left:-4%;bottom:24%;width:46%;height:38%;border:6px solid #2d2e39;border-bottom-width:20px;border-radius:12px;transform:perspective(900px) rotateY(8deg) rotateZ(-2deg);background:radial-gradient(ellipse at 30% 10%,#1b2927,#10141b 65%);box-shadow:inset 0 0 0 1px #111218,0 0 0 1px #636071,8px 12px 0 -4px #1a1b23,0 22px 55px #0008}
+.mascot-terminal:before{top:calc(100% + 18px);height:22%;left:42%;width:16%;background:linear-gradient(90deg,#20212b,#50515f 48%,#262732);clip-path:polygon(24% 0,76% 0,100% 100%,0 100%)}
+.mascot-terminal:after{top:calc(122% + 15px);height:6%;left:21%;width:58%;border-top:1px solid #777385;background:linear-gradient(#41424f,#20212a);box-shadow:0 10px 15px #0007;clip-path:polygon(19% 0,81% 0,100% 80%,95% 100%,5% 100%,0 80%)}
+.mascot-terminal-top{background:#24262e9c;border-radius:5px 5px 0 0;padding:7px 8px}.mascot-terminal-code{position:relative;padding:10px 12px;height:calc(100% - 27px)}
+.mascot-terminal-code:after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,#0000000b 3px 4px)}
+.monitor-brand{position:absolute;bottom:-15px;left:10px;font:600 7px var(--mono);letter-spacing:2px;color:#b2acbf}.monitor-brand span{margin-left:13px;color:#777585;font-size:5px;letter-spacing:1px}.monitor-light{bottom:-13px;box-shadow:0 0 7px #84bc9b}
+.mascot-keyboard{left:48%;right:auto;bottom:6.5%;width:52%;height:15%;padding:6px 7px 11px;transform:rotate(-3deg);border:1px solid #777182;border-bottom:7px solid #292a35;border-radius:8px;background:linear-gradient(145deg,#4b4957,#282b35 60%);box-shadow:0 1px 0 #aaa2b555,inset 0 0 0 2px #20222b,0 15px 0 -6px #171922,0 25px 28px -12px #000b;overflow:visible}
+.keyboard-grid{height:100%;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:3px;position:relative;z-index:1}
+.keycap{position:relative;display:flex;align-items:center;justify-content:center;border-radius:3px;background:linear-gradient(145deg,#4a4c58,#343641);color:#b6b6c4;font:500 clamp(4px,.55vw,8px) var(--mono);border-top:1px solid #7a788955;border-bottom:2px solid #1b1d26;box-shadow:0 2px 1px #11141a;transition:background .1s,box-shadow .1s,transform .1s;min-width:0}
+.keycap[data-key="ESC"],.keycap[data-key="ENTER"]{color:#b9ddc6;background:linear-gradient(#456257,#2d463d)}
+.keycap.key-space{grid-column:span 6}.keycap.key-wide{grid-column:span 2}
+.keycap.is-down{transform:translateY(2px);background:linear-gradient(#c0f0d5,#6db68c);color:#14261c;box-shadow:0 0 13px #99e2bd99,0 0 4px #e3ffef,inset 0 1px 0 #e4fff0;border-bottom-color:#426d53}
+.keyboard-edge{position:absolute;bottom:-4px;left:12%;width:76%;height:2px;background:linear-gradient(90deg,transparent,#84bc9b99,#a699c1aa,transparent);box-shadow:0 2px 8px #84bc9b33}
+.keyboard-brand{position:absolute;bottom:1px;left:9px;font:5px var(--mono);letter-spacing:1px;color:#9792a8}.key-ripple{position:absolute;left:var(--hit-x,50%);top:var(--hit-y,40%);width:22%;aspect-ratio:1;border:1px solid #a8edc3;border-radius:50%;opacity:0;pointer-events:none;z-index:3;transform:translate(-50%,-50%)}
+.mascot-keyboard.key-impact .key-ripple{animation:impact-ring .48s ease-out both}
+.mascot-desk{bottom:6%;left:-7%;right:-3%;height:5px;border-radius:50%;background:linear-gradient(90deg,transparent,#5d586c66,#78718588,transparent);box-shadow:0 18px 30px #0008}
+.mascot-event{top:17%;right:0}.mascot-hint{bottom:-2%}.mascot-pause{bottom:-7%}
+@keyframes impact-ring{0%{opacity:.7;scale:.2}100%{opacity:0;scale:1.5}}
+@media(max-width:760px){.mascot-terminal{width:43%;height:40%;left:0;border-width:4px;border-bottom-width:17px}.mascot-terminal-code{font-size:8px;padding:7px}.mascot-terminal-top{padding:4px}.monitor-brand{font-size:5px;bottom:-13px}.monitor-brand span{font-size:4px}.keyboard-grid{gap:2px}.mascot-keyboard{padding:4px 4px 8px;border-bottom-width:5px;border-radius:5px}.keyboard-brand{font-size:3px}.keycap{border-radius:2px;border-bottom-width:1px;font-size:5px}.mascot-event{font-size:8px}}
+.terminal-paused .key-ripple{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.keycap{animation:none!important;transition:none!important}.key-ripple{display:none}}

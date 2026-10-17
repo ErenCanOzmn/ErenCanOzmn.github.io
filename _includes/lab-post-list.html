@@ -1,0 +1,12 @@
+{% assign latest_post = site.posts.first %}
+<div class="entry-list note-grid">
+  {% for post in include.posts %}{% assign words = post.content | strip_html | number_of_words %}{% assign minutes = words | divided_by: 200 | plus: 1 %}
+  {% capture search_text %}{{ post.title }} {{ post.categories | join: ' ' }} {{ post.tags | join: ' ' }}{% endcapture %}
+  <article class="entry note-card" data-categories="{{ post.categories | join: '|' | escape }}" data-search="{{ search_text | strip | escape }}">
+    <div class="note-card-top"><span class="note-type">{{ post.categories | first | escape }}</span>{% include lab-post-language.html post=post %}{% if post.url == latest_post.url %}<span class="latest">Son yazı</span>{% endif %}</div>
+    <h2><a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a></h2>
+    <p>{{ post.description | default: post.excerpt | strip_html | normalize_whitespace | escape }}</p>
+    <div class="note-card-bottom"><time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: '%d.%m.%Y' }}</time><span>{{ minutes }} dk okuma</span><span class="note-arrow" aria-hidden="true">↗</span></div>
+  </article>
+  {% endfor %}
+</div>

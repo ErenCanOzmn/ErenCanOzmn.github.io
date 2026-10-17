@@ -1,0 +1,5 @@
+---
+layout: lab-base
+---
+<header class="page-heading"><a class="back-link" href="{{ '/' | relative_url }}">← Ana sayfa</a><p class="eyebrow">{{ page.kicker | default: 'DIZMANA / NOTES' }}</p><h1>{{ page.title | escape }}<span class="green">.</span></h1>{% if page.description %}<p>{{ page.description | escape }}</p>{% endif %}</header>
+<div class="prose page-prose">{{ content }}</div>

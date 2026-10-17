@@ -1,0 +1,14 @@
+<header class="header">
+  <a class="brand wordmark" href="{{ '/' | relative_url }}" aria-label="DIZMANA ana sayfa"><span class="wordmark-name">DIZMANA</span><span class="wordmark-dot" aria-hidden="true"></span></a>
+  <nav aria-label="Ana menü">
+    <a href="{{ '/archives/' | relative_url }}"{% if page.layout == 'archives' or page.layout == 'post' %} class="active" aria-current="page"{% endif %}>Arşiv</a>
+    <a href="{{ '/categories/' | relative_url }}"{% if page.layout == 'categories' or page.layout == 'category' or page.layout == 'tags' or page.layout == 'tag' %} class="active" aria-current="page"{% endif %}>Yazılar</a>
+    <a href="{{ '/about/' | relative_url }}"{% if page.url == '/about/' %} class="active" aria-current="page"{% endif %}>Hakkımda</a>
+    <a href="{{ '/achievements/' | relative_url }}"{% if page.url == '/achievements/' %} class="active" aria-current="page"{% endif %}>Achievements</a>
+    <a href="{{ '/search/' | relative_url }}"{% if page.url == '/search/' %} class="active" aria-current="page"{% endif %}>Ara <span aria-hidden="true">⌕</span></a>
+  </nav>
+  <div class="language-switch" role="group" aria-label="Site dili" hidden>
+    <button type="button" data-site-language="tr" lang="tr" aria-label="Türkçe" aria-pressed="true">TR</button>
+    <button type="button" data-site-language="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+  </div>
+</header>

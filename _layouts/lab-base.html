@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="{% if page.layout == 'post' %}{{ page.lang | default: 'en' }}{% else %}tr{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101116">
+  <title>DIZMANA</title>
+  {% seo title=false %}
+  <link rel="alternate" type="application/atom+xml" title="Dizmana" href="{{ '/feed.xml' | relative_url }}">
+  {% include lab-fonts.html %}
+  <link rel="stylesheet" href="{{ '/assets/css/reading-theme.css' | relative_url }}?v=4">
+  <script src="{{ '/assets/js/site-language.js' | relative_url }}?v=1" defer></script>
+  <script src="{{ '/assets/js/lab-pages.js' | relative_url }}?v=4" defer></script>
+  {% if page.layout == 'post' %}<script src="{{ '/assets/js/lab-reading.js' | relative_url }}?v=4" defer></script>{% endif %}
+</head>
+<body class="inner-page layout-{{ page.layout | escape }}">
+  <a class="skip" href="#main">İçeriğe geç</a>
+  <div class="reading-progress" aria-hidden="true"></div>
+  <div class="shell">
+    {% include lab-header.html %}
+    <main id="main">{{ content }}</main>
+    <div class="page-signoff">{% unless page.layout == 'about' %}<div class="site-footer-cat">{% include cat.html %}</div>{% endunless %}</div>
+    {% include lab-footer.html %}
+  </div>
+</body>
+</html>

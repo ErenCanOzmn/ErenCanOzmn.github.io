@@ -1,0 +1,2 @@
+<header class="page-heading"><a class="back-link" href="{{ include.parent | relative_url }}">← {{ include.parent_label }}</a><h1>{{ page.title | escape }}</h1><p>Bu başlık altında {{ page.posts.size }} yazı.</p></header>
+{% include lab-post-list.html posts=page.posts %}

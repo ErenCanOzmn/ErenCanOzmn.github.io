@@ -1,0 +1,29 @@
+---
+layout: lab-base
+---
+<article class="reading-page">
+  {% assign words = content | strip_html | number_of_words %}{% assign minutes = words | divided_by: 200 | plus: 1 %}
+  <header class="article-header">
+    <div class="article-title-group">
+    <a class="back-link" href="{{ '/archives/' | relative_url }}">← Tüm yazılar</a>
+    <div class="article-kicker">{% for category in page.categories %}{% assign category_slug = category | slugify %}<a href="{{ '/categories/' | append: category_slug | append: '/' | relative_url }}">{{ category | escape }}</a>{% endfor %}</div>
+    <h1>{{ page.title | escape }}</h1>
+    {% if page.description %}<p class="article-description">{{ page.description | escape }}</p>{% endif %}
+    <div class="article-byline"><a class="author-chip" href="{{ '/about/' | relative_url }}"><span class="author-monogram" aria-hidden="true">D.</span><span>Eren Can Özmen <small>@dizmana</small></span></a></div>
+    </div>
+    <div class="article-file"><dl><div><dt>YAYIMLANDI</dt><dd><time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: '%d.%m.%Y' }}</time></dd></div><div><dt>OKUMA SÜRESİ</dt><dd data-reading-minutes>{{ minutes }} dakika</dd></div><div><dt>DİL</dt><dd data-article-language>{% if page.lang == 'tr' %}Türkçe{% else %}English{% endif %}</dd></div></dl><a href="#article-content">Okumaya başla ↓</a></div>
+  </header>
+  <div class="reading-grid">
+    <div class="reading-main">
+      <div class="prose" id="article-content" lang="{{ page.lang | default: 'en' }}">{{ content | replace: '<h1 ', '<h2 ' | replace: '<h1>', '<h2>' | replace: '</h1>', '</h2>' }}</div>
+      {% assign translation_key = page.path | split: '/' | last | remove: '.md' %}
+      {% assign translation = site.data.post_translations[translation_key] %}
+      {% if translation %}<template data-article-translation data-lang="{{ translation.lang }}">{{ translation.body | with_original_code: page.path | markdownify }}</template>{% endif %}
+      {% if page.tags.size > 0 %}<div class="article-tags" aria-label="Yazı etiketleri">{% for tag in page.tags %}{% assign tag_slug = tag | slugify %}<a href="{{ '/tags/' | append: tag_slug | append: '/' | relative_url }}">#{{ tag | escape }}</a>{% endfor %}</div>{% endif %}
+      <div class="article-end"><a href="{{ '/archives/' | relative_url }}">Tüm yazılar</a><button type="button" class="copy-link" hidden>Bağlantıyı kopyala</button><span class="copy-feedback" role="status"></span></div>
+      <nav class="post-pagination" aria-label="Diğer yazılar">{% if page.previous %}<a href="{{ page.previous.url | relative_url }}"><span>← ÖNCEKİ YAZI</span><strong>{{ page.previous.title | escape }}</strong></a>{% endif %}{% if page.next %}<a href="{{ page.next.url | relative_url }}"><span>SONRAKİ YAZI →</span><strong>{{ page.next.title | escape }}</strong></a>{% endif %}</nav>
+    </div>
+    <aside class="reading-aside" hidden><details class="toc" id="article-toc" open><summary><span>İçindekiler</span><span class="toc-count"></span></summary><nav aria-label="İçindekiler"><ol></ol><a class="toc-top" href="#main">↑ Başa dön</a><a class="toc-archive" href="{{ '/archives/' | relative_url }}">← Diğer yazılar</a></nav></details></aside>
+  </div>
+</article>
+<nav class="reader-nav" aria-label="Yazı gezinme" hidden><a href="{{ '/archives/' | relative_url }}">← Tüm yazılar</a><button type="button" data-reader-toc>İçindekiler</button><a href="#main">Başa dön ↑</a></nav>

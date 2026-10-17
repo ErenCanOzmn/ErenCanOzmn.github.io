@@ -1,0 +1,190 @@
+#calico-cat {
+  --cat-eye-x: 0%;
+  --cat-eye-y: 0%;
+  --cat-lid-y: -110%;
+  position: fixed;
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(2px, env(safe-area-inset-bottom));
+  width: 156px;
+  aspect-ratio: 200 / 270;
+  z-index: 1040;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18));
+  contain: layout style;
+}
+
+#calico-cat .cat-body,
+#calico-cat .cat-face {
+  position: absolute;
+  width: 100%;
+  aspect-ratio: 1;
+  background-image: var(--cat-art);
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+}
+
+#calico-cat .cat-body {
+  bottom: 0;
+  left: 0;
+  background-position: left center;
+  transform-origin: 60.5% 50%;
+  transform: scaleX(1.06);
+}
+
+#calico-cat .cat-head {
+  position: absolute;
+  left: 23%;
+  top: 0;
+  width: 76%;
+  aspect-ratio: 1;
+  transform-origin: 50% 84%;
+  transform: perspective(500px) translate(var(--cat-head-x, 0px), var(--cat-head-y, 0px)) rotateY(var(--cat-yaw, 0deg)) rotateX(var(--cat-pitch, 0deg)) rotateZ(var(--cat-tilt, 0deg));
+}
+
+#calico-cat .cat-face {
+  inset: 0;
+  background-position: right center;
+}
+
+#calico-cat .cat-eye {
+  position: absolute;
+  width: 10.6%;
+  height: 10%;
+  overflow: hidden;
+  border-radius: 48% 48% 46% 46%;
+  isolation: isolate;
+}
+
+#calico-cat .cat-eye-left {
+  left: 32.8%;
+  top: 48.1%;
+  transform: rotate(-10deg);
+}
+
+#calico-cat .cat-eye-right {
+  left: 56.4%;
+  top: 47.3%;
+  transform: rotate(10deg);
+}
+
+#calico-cat .cat-gaze {
+  position: absolute;
+  inset: 0;
+  transform: translate(var(--cat-eye-x), var(--cat-eye-y));
+}
+
+#calico-cat .cat-pupil {
+  position: absolute;
+  left: 19%;
+  top: 10%;
+  width: 62%;
+  height: 80%;
+  border-radius: 48%;
+  background: radial-gradient(ellipse at 35% 30%, #27342c 0%, #151d19 55%, #111611 100%);
+  box-shadow: 0 0 1px rgba(32, 35, 23, 0.55);
+}
+
+#calico-cat .cat-pupil::before,
+#calico-cat .cat-pupil::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: #fffdf5;
+}
+
+#calico-cat .cat-pupil::before {
+  left: 18%;
+  top: 14%;
+  width: 32%;
+  height: 25%;
+  opacity: 0.95;
+}
+
+#calico-cat .cat-pupil::after {
+  right: 15%;
+  bottom: 17%;
+  width: 13%;
+  height: 10%;
+  opacity: 0.55;
+}
+
+#calico-cat .cat-lid {
+  position: absolute;
+  inset: -5%;
+  border-bottom: 1px solid #493324;
+  border-radius: 45%;
+  background: linear-gradient(#a88c6f, #d4bca0 70%, #e8d2b9);
+  transform: translateY(var(--cat-lid-y));
+}
+
+#calico-cat .cat-eye-right .cat-lid {
+  background: linear-gradient(#8b735b, #b9a187 70%, #dccab4);
+}
+
+@media (max-width: 991px) {
+  #calico-cat {
+    width: 124px;
+  }
+}
+
+@media (max-width: 575px) {
+  #calico-cat {
+    width: 96px;
+    right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #calico-cat .cat-head,
+  #calico-cat .cat-gaze {
+    transform: none !important;
+  }
+
+  #calico-cat .cat-lid {
+    display: none;
+  }
+}
+
+@media print {
+  #calico-cat {
+    display: none;
+  }
+}
+
+/* The original animated sprite is now the homepage's central character. */
+.mascot-stage{position:relative;justify-self:center;width:min(100%,540px);aspect-ratio:1;isolation:isolate}
+.mascot-halo{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 60% 50%,#84bc9b13,transparent 59%);border:1px solid #a8a0c410;z-index:-1}
+.mascot-halo:after{content:'';position:absolute;inset:8%;border:1px dashed #a8a0c41c;border-radius:50%}
+.mascot-stage #calico-cat{position:absolute;left:24%;right:auto;bottom:10%;width:60%;z-index:3;filter:drop-shadow(0 15px 18px #0006)}
+.mascot-terminal{position:absolute;left:0;top:13%;width:48%;background:#16181fee;border:1px solid #454650;border-radius:10px;transform:rotate(-7deg);box-shadow:0 18px 50px #0004;overflow:hidden;font:clamp(8px,.8vw,12px)/1.8 var(--mono);z-index:1}
+.mascot-terminal-top{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid #ffffff10;font-size:.75em;color:#9b98ac}
+.mascot-terminal-top>span:first-child{letter-spacing:2px;color:#788e80}
+.mascot-terminal-code{padding:14px 16px 17px}.mascot-terminal-code p{margin:0 0 8px}.mascot-terminal-code b{color:var(--green);font-weight:400}.mascot-terminal-code .terminal-answer{color:#a8a5b5;font-size:.85em}
+.mascot-keyboard{position:absolute;right:-1%;bottom:10.3%;width:47%;height:2%;background:linear-gradient(#565664,#292b36);border-radius:2px 2px 10px 10px;transform:skewY(-4deg);z-index:5}
+.mascot-desk{position:absolute;left:4%;right:-3%;bottom:9%;height:1px;background:linear-gradient(90deg,transparent,#676371 25%,#676371 85%,transparent);box-shadow:0 18px 30px 4px #0004;z-index:0}
+.mascot-status{position:absolute;top:3%;right:4%;font:9px var(--mono);letter-spacing:1.4px;color:#aaa6b8}
+.mascot-hint{position:absolute;bottom:0;left:7%;font:10px var(--mono);color:#9591a5}
+@media(min-width:1400px){.mascot-stage{width:min(100%,600px)}}
+@media(min-width:1700px){.mascot-stage{width:min(100%,680px)}}
+@media(max-width:760px){.mascot-stage{width:min(100%,430px);margin:8px auto 0}.mascot-terminal{font-size:10px}.mascot-terminal-code{padding:10px}.mascot-terminal-top{padding:8px}.mascot-status{font-size:7px}.mascot-hint{font-size:8px}}
+@media(max-width:380px){.mascot-terminal{font-size:8px}.mascot-status{letter-spacing:.7px}}
+@media(prefers-reduced-motion:no-preference){.mascot-stage{animation:enter .8s .15s both}}
+.mascot-terminal{width:40%;top:27%;left:-2%;opacity:.8}
+.mascot-halo{background:radial-gradient(ellipse at 65% 55%,#84bc9b18,transparent 60%)}
+
+/* A readable desktop monitor and a separate keyboard in front of the mascot. */
+.mascot-stage #calico-cat{left:36%;width:55%;bottom:14%}
+.mascot-terminal{left:-3%;top:auto;bottom:23%;width:56%;height:35%;opacity:1;transform:rotate(-3deg);z-index:4;overflow:visible;border:5px solid #30313d;border-bottom-width:13px;border-radius:9px;background:#11151a;box-shadow:0 15px 35px #0005}
+.mascot-terminal:before{content:'';position:absolute;top:calc(100% + 12px);left:44%;width:12%;height:26%;background:linear-gradient(90deg,#252631,#454553,#252631)}
+.mascot-terminal:after{content:'';position:absolute;top:calc(126% + 10px);left:27%;width:46%;height:6%;background:linear-gradient(#4a4a59,#292a35);border-radius:50% 50% 4px 4px}
+.mascot-terminal-top{padding:5px 8px;font-size:.65em}
+.mascot-terminal-code{padding:8px 10px;overflow:hidden;height:calc(100% - 25px);font-size:clamp(9px,.8vw,12px);line-height:1.65}
+.mascot-terminal-code p{margin:0 0 6px;overflow-wrap:anywhere}.mascot-terminal-code .scene-label{font-size:.6em;letter-spacing:1.5px;color:#747f88;margin-bottom:7px}.mascot-terminal-code .command-line{color:#c9d6ce}.mascot-terminal-code .terminal-answer{font-size:.85em;color:#91bba1}.mascot-terminal .cursor{height:1em;width:.45em;margin-left:3px}.monitor-light{position:absolute;bottom:-9px;right:9px;width:3px;height:3px;border-radius:50%;background:var(--green)}
+.mascot-keyboard{right:1%;bottom:8%;width:48%;height:9%;border:1px solid #565566;border-bottom:5px solid #242631;border-radius:5px;transform:perspective(300px) rotateX(28deg) rotateZ(-4deg);background:#31323e;box-shadow:0 10px 18px #0005;padding:5px;z-index:5}
+.mascot-event{position:absolute;right:4%;top:15%;padding:8px 12px;border:1px solid #739b8055;border-radius:5px;background:#18231eee;font:600 clamp(9px,1vw,13px) var(--mono);color:#a0d9b2;z-index:5;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s;pointer-events:none}
+.event-complete .mascot-event{opacity:1;transform:translateY(0)}
+.mascot-pause{position:absolute;bottom:-5%;right:0;border:1px solid #41404d;border-radius:4px;background:#191a22;color:#aaa6b8;padding:6px 9px;font:9px var(--mono);cursor:pointer}.mascot-pause:hover{color:var(--green);border-color:var(--green)}.mascot-pause[hidden]{display:none}
+.terminal-paused .cursor{animation:none}
+@media(max-width:760px){.mascot-terminal{width:58%;height:38%;left:-1%}.mascot-terminal-code{font-size:9px;padding:6px}.mascot-terminal-top{padding:4px 6px}.mascot-terminal-code p{margin-bottom:4px}.mascot-pause{font-size:8px}.mascot-hint{left:0;font-size:7px}}
+@media(prefers-reduced-motion:reduce){.mascot-event{transition:none}}

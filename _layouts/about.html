@@ -1,0 +1,23 @@
+---
+layout: lab-base
+---
+<section class="about-intro interior-hero" aria-labelledby="about-title">
+  <div class="about-copy">
+    <a class="back-link" href="{{ '/' | relative_url }}">← Ana sayfa</a>
+    <h1 id="about-title">Hakkımda</h1>
+    <p class="about-name">Eren Can Özmen <span>/ @dizmana</span></p>
+    <ul class="interior-lede about-traits">
+      <li>Ailenizin en sevdiği hacker</li>
+      <li>Dızmana enjoyer</li>
+      <li>Zalimlerin düşmanı</li>
+    </ul>
+    <div class="hero-actions"><a class="button" href="{{ '/archives/' | relative_url }}">Yazılarım <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/ErenCanOzmn">GitHub ↗</a></div>
+  </div>
+  <div class="identity-dossier">
+    <div class="window-label"><span class="window-dots" aria-hidden="true">● ● ●</span><span>dizmana / profile</span></div>
+    <div class="identity-details"><p class="console-command"><span>❯</span> whoami</p><p class="identity-answer">dizmana</p><dl><div><dt>İsim</dt><dd>Eren Can Özmen</dd></div><div><dt>GitHub</dt><dd><a href="https://github.com/ErenCanOzmn">ErenCanOzmn ↗</a></dd></div></dl></div>
+    <div class="about-cat">{% include cat.html %}<span>Safiye</span></div>
+  </div>
+</section>
+<div class="interior-next"><div><h2>Achievements</h2><p>CVE kayıtları, Hall of Fame ve sertifikalar.</p></div><a class="text-link" href="{{ '/achievements/' | relative_url }}">Achievements sayfası ↗</a></div>
+{% include achievement-records.html %}

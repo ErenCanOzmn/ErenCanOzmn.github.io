@@ -1,0 +1,27 @@
+{% assign achievements = site.data.achievements %}
+{% assign published_cves = achievements.cves | where: 'status', 'Published' | sort: 'date' | reverse %}
+{% assign pending_cves = achievements.cves | where: 'status', 'Unpublished' %}
+{% assign ordered_cves = published_cves | concat: pending_cves %}
+<div class="achievement-sections">
+  <section id="cves" class="achievement-section" aria-labelledby="cve-title">
+    <h2 id="cve-title">CVE</h2>
+    <p class="section-description">CVE (Common Vulnerabilities and Exposures), güvenlik açıklarının ortak bir kimlik numarasıyla tanımlanmasını sağlar. Aşağıda araştırmalarım kapsamında yer alan kayıtları ve yayımlanma durumlarını bulabilirsin. <a href="https://www.cve.org/ResourcesSupport/Glossary?activeTerm=glossaryRecord">CVE hakkında ↗</a></p>
+    <div class="cve-list">{% for cve in ordered_cves %}
+      <article class="cve-record{% if cve.status == 'Unpublished' %} is-pending{% endif %}">
+        <div class="cve-top"><h3><a class="cve-id" href="{{ cve.url }}">{{ cve.id }} <span aria-hidden="true">↗</span></a></h3><span class="record-status">{{ cve.label }}</span></div>
+        <p class="cve-product">{{ cve.product }}</p>
+        <p class="record-description">{{ cve.description }}</p>
+        {% if cve.type %}<dl class="cve-details"><div><dt>Açık türü</dt><dd>{{ cve.type }} / {{ cve.cwe }}</dd></div>{% if cve.component %}<div><dt>Bileşen</dt><dd>{{ cve.component }}</dd></div>{% endif %}<div><dt>Yayımlanma</dt><dd><time datetime="{{ cve.date }}">{{ cve.date | date: '%d.%m.%Y' }}</time></dd></div></dl>{% endif %}
+      </article>
+    {% endfor %}</div>
+  </section>
+  <section id="recognition" class="achievement-section" aria-labelledby="recognition-title">
+    <h2 id="recognition-title">Hall of Fame</h2>
+    <p class="section-description">Kurumlar, güvenlik açığı bildirimleriyle katkıda bulunan araştırmacılara Hall of Fame sayfalarında teşekkür eder. Yer aldığım kayıt aşağıda.</p>
+    {% for recognition in achievements.recognitions %}<article class="recognition-card"><div class="recognition-heading"><h3>{{ recognition.organization }}</h3><span>{{ recognition.date }}</span></div><p class="record-description">{{ recognition.description }}</p><dl class="recognition-details"><div><dt>Program</dt><dd>{{ recognition.title }}</dd></div><div><dt>Listelenen isim</dt><dd>{{ recognition.name }}</dd></div></dl><a class="record-link" href="{{ recognition.url }}">{{ recognition.organization }} Hall of Fame kaydı ↗</a></article>{% endfor %}
+  </section>
+  <section id="certificates" class="achievement-section" aria-labelledby="certificate-title">
+    <h2 id="certificate-title">Sertifikalar</h2><p class="section-description">Web uygulama güvenliği ve sızma testi alanlarında aldığım sertifikalar.</p>
+    <div class="certificate-grid">{% for certificate in achievements.certifications %}<article class="certificate"><span class="certificate-issuer">{{ certificate.issuer }}</span><h3>{{ certificate.short }}</h3><p>{{ certificate.title }}</p></article>{% endfor %}</div>
+  </section>
+</div>
